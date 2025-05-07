@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI艺术工坊 - 智能绘画生成器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        .light {
+            background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+        }
+        .card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+        }
+        .preview {
+            border: 2px dashed #4f46e5;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            min-height: 300px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        .inspiration-item {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .inspiration-item:hover {
+            background: rgba(79, 70, 229, 0.1);
+            transform: translateX(5px);
+            border-color: rgba(79, 70, 229, 0.3);
+        }
+        
+        .download-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(37, 99, 235, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0;
+            z-index: 10;
+        }
+        .preview:hover .download-btn {
+            opacity: 1;
+        }
+        .download-btn:hover {
+            background: rgba(29, 78, 216, 1);
+        }
+        .quality-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px;
+            border-radius: 4px;
+            background: rgba(79, 70, 229, 0.1);
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        .quality-tag.active {
+            background: rgba(79, 70, 229, 0.3);
+            color: #4F46E5;
+            transform: translateY(-1px);
+        }
+        .quality-tag:hover {
+            background: rgba(79, 70, 229, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <div class="max-w-4xl mx-auto space-y-8">
+        <!-- 主题切换 -->
+        <div class="flex justify-end mb-8">
+            <button onclick="toggleTheme()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                🌙 深色模式
+            </button>
+        </div>
+        
+        <!-- 主内容 -->
+        <div class="card p-6">
+            <h1 class="text-4xl font-bold text-center text-gray-800 dark:text-white mb-8">
+                AI艺术工坊
+                <span class="text-2xl text-blue-600">v2.4</span>
+            </h1>
+            
+            <!-- 输入区域和灵感库并排布局 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 左侧输入区域 -->
+                <div class="md:col-span-2 space-y-4">
+                    <div class="relative">
+                        <textarea
+                            id="prompt"
+                            placeholder="描述你想要生成的图片内容..."
+                            class="w-full p-4 text-lg rounded-lg focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 h-24 resize-none"
+                            onkeydown="handleKeyPress(event)"
+                        ></textarea>
+                        <div class="absolute right-3 top-3">
+                            <span class="text-sm text-gray-500">按Ctrl+Enter快速生成</span>
+                        </div>
+                    </div>
+                    <div id="apiStatusMessage" class="text-sm text-gray-500 dark:text-gray-400 mt-1 h-5"></div>
+
+                    <!-- 质量标签 -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                            图片质量增强（建议选择2-3个）
+                        </label>
+                        <div id="qualityTags" class="flex flex-wrap gap-2">
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="masterpiece">完美作品</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="best quality">最佳品质</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="ultra detailed">超细节</span>
+                            <span class="quality-tag active" onclick="toggleTag(this)" data-en="high resolution">高分辨率</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="8k uhd">8K超高清</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="professional lighting">专业打光</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="cinematic lighting">电影光效</span>
+                        </div>
+                    </div>
+
+                    <!-- 参数设置 -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                                图片尺寸 (分辨率)
+                            </label>
+                            <select id="aspectRatio" class="p-3 rounded-lg w-full">
+                                <option value="1024:1024">1024x1024 (1:1 正方形)</option>
+                                <option value="1280:720">1280x720 (16:9 横屏 HD)</option>
+                                <option value="1920:1080">1920x1080 (16:9 横屏 Full HD)</option>
+                                <option value="720:1280">720x1280 (9:16 竖屏 HD)</option>
+                                <option value="1080:1920">1080x1920 (9:16 竖屏 Full HD)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                                生成数量
+                            </label>
+                            <select id="generateCount" class="p-3 rounded-lg w-full">
+                                <option value="1">生成 1 张</option>
+                                <option value="2">生成 2 张</option>
+                                <option value="4">生成 4 张</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 生成按钮 -->
+                    <div class="flex justify-center mt-4">
+                        <button 
+                            onclick="generateImage()"
+                            id="generateBtn"
+                            class="px-8 py-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-lg font-semibold"
+                        >
+                            🎨 生成图片
+                        </button>
+                    </div>
+
+                    <div class="mt-4">
+                        <button
+                            id="testTranslateBtn"
+                            onclick="testTranslateAPI()"
+                            class="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 text-sm font-semibold"
+                        >
+                            🧪 测试翻译API
+                        </button>
+                        <p id="translateTestResult" class="mt-2 text-sm text-gray-700 dark:text-gray-300"></p>
+                    </div>
+                </div>
+
+                <!-- 右侧灵感库 -->
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 h-fit">
+                    <h3 class="font-semibold mb-4 text-lg">✨ 灵感库</h3>
+                    <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2" id="inspirationList">
+                        <!-- 灵感列表由JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 生成区域 -->
+            <div class="mt-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="previewContainer">
+                    <!-- 预览图片将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
