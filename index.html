@@ -85,15 +85,67 @@
         .quality-tag:hover {
             background: rgba(79, 70, 229, 0.2);
         }
+        /* API设置面板样式 */
+        .settings-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            background: white;
+            width: 90%;
+            max-width: 400px;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
     <div class="max-w-4xl mx-auto space-y-8">
-        <!-- 主题切换 -->
-        <div class="flex justify-end mb-8">
+        <!-- 主题切换和API设置按钮 -->
+        <div class="flex justify-between mb-8">
+            <!-- API设置按钮 -->
+            <button onclick="toggleApiSettings()" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
+                ⚙️ API设置
+            </button>
+            
+            <!-- 主题切换按钮 -->
             <button onclick="toggleTheme()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
                 🌙 深色模式
             </button>
+        </div>
+        
+        <!-- API设置面板 -->
+        <div id="apiSettings" class="settings-panel p-6 dark:bg-gray-800 dark:text-white hidden">
+            <h3 class="text-xl font-bold mb-4">小牛翻译API设置</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                请输入您的小牛翻译API密钥。API密钥将安全地存储在您的浏览器中，不会上传到服务器。
+            </p>
+            <div class="mb-4">
+                <label for="apiKeyInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    API密钥
+                </label>
+                <input 
+                    type="password" 
+                    id="apiKeyInput" 
+                    class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="请输入小牛翻译API密钥"
+                >
+                <p id="apiKeyStatus" class="mt-2 text-sm"></p>
+            </div>
+            <div class="flex justify-between">
+                <button onclick="clearApiKey()" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+                    🗑️ 清除密钥
+                </button>
+                <div>
+                    <button onclick="document.getElementById('apiSettings').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-gray-300 text-gray-800 hover:bg-gray-400 mr-2">
+                        取消
+                    </button>
+                    <button onclick="saveApiKey()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                        保存
+                    </button>
+                </div>
+            </div>
         </div>
         
         <!-- 主内容 -->
@@ -171,17 +223,6 @@
                         >
                             🎨 生成图片
                         </button>
-                    </div>
-
-                    <div class="mt-4">
-                        <button
-                            id="testTranslateBtn"
-                            onclick="testTranslateAPI()"
-                            class="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 text-sm font-semibold"
-                        >
-                            🧪 测试翻译API
-                        </button>
-                        <p id="translateTestResult" class="mt-2 text-sm text-gray-700 dark:text-gray-300"></p>
                     </div>
                 </div>
 

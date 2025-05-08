@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('prompt').value = '宇宙飞行员在月球上种竹子';
+    
+    // 检查API密钥是否已配置
+    checkApiKeyStatus();
 });
 
 function toggleTag(element) {
@@ -58,32 +61,24 @@ async function generateImage() {
         englishPrompt = matchedInspiration.split('|')[1].trim();
         apiStatusMessage.textContent = '提示词已从灵感库匹配。';
     } else {
-        // 如果灵感库中没有匹配项，则调用AI翻译API
+        // 如果灵感库中没有匹配项，调用小牛翻译API
         apiStatusMessage.textContent = '正在翻译提示词...';
         try {
-            const translateUrl = `https://text.pollinations.ai/prompt/${encodeURIComponent(basePrompt)}?translate_only=true`;
-            const translateResponse = await fetch(translateUrl);
-            if (!translateResponse.ok) {
-                console.error('翻译API请求失败:', translateResponse.status, translateResponse.statusText);
-                apiStatusMessage.textContent = `翻译失败 (${translateResponse.status})，将尝试使用原始提示词。`;
-                // 翻译失败，尝试使用原始中文提示词（API可能支持部分中文）
+            // 调用小牛翻译API
+            const translatedText = await translateWithNiutrans(basePrompt);
+            if (translatedText !== basePrompt) {
+                englishPrompt = translatedText;
+                apiStatusMessage.textContent = '提示词翻译成功！';
             } else {
-                const translateData = await translateResponse.json();
-                if (translateData && translateData.prompt) {
-                    englishPrompt = translateData.prompt; 
-                    apiStatusMessage.textContent = '提示词翻译成功！';
-                } else {
-                    console.error('翻译API响应格式不正确:', translateData);
-                    apiStatusMessage.textContent = '翻译API响应异常，将尝试使用原始提示词。';
-                }
+                apiStatusMessage.textContent = '翻译未配置或失败，将使用原始提示词。';
             }
         } catch (error) {
             console.error('调用翻译API时出错:', error);
-            apiStatusMessage.textContent = '翻译API调用出错，将尝试使用原始提示词。';
+            apiStatusMessage.textContent = '翻译API调用出错，将使用原始提示词。';
         }
     }
-
-    // 短暂显示翻译状态后清除
+    
+    // 短暂显示状态后清除
     setTimeout(() => {
         if (apiStatusMessage.textContent.includes('翻译') || apiStatusMessage.textContent.includes('匹配')) {
             apiStatusMessage.textContent = '';
@@ -202,30 +197,120 @@ function toggleTheme() {
     btn.textContent = isDark ? '☀️ 浅色模式' : '🌙 深色模式';
 }
 
-async function testTranslateAPI() {
-    const testPrompt = "你好世界"; // 预设的中文提示词
-    const resultElement = document.getElementById('translateTestResult');
-    resultElement.textContent = '正在测试翻译API...';
-
+// 小牛翻译API实现
+async function translateWithNiutrans(text) {
+    // 从localStorage获取API密钥
+    const apiKey = localStorage.getItem('niutransApiKey') || '';
+    
+    // 如果没有配置API密钥，返回原始文本
+    if (!apiKey) {
+        console.warn('未配置小牛翻译API密钥，将使用原始文本');
+        return text;
+    }
+    
+    // 构建请求参数
+    const requestData = {
+        apikey: apiKey,
+        src_text: text,
+        from: 'zh',
+        to: 'en',
+        dictNo: ''
+    };
+    
     try {
-        const translateUrl = `https://text.pollinations.ai/prompt/${encodeURIComponent(testPrompt)}?translate_only=true`;
-        const translateResponse = await fetch(translateUrl);
-
-        if (!translateResponse.ok) {
-            console.error('翻译API请求失败:', translateResponse.status, translateResponse.statusText);
-            resultElement.textContent = `翻译API测试失败: ${translateResponse.status} ${translateResponse.statusText}`;
-            return;
+        const response = await fetch('https://api.niutrans.com/NiuTransServer/translation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams(requestData).toString()
+        });
+        
+        if (!response.ok) {
+            console.error('小牛翻译API请求失败:', response.status, response.statusText);
+            return text;
         }
-
-        const translateData = await translateResponse.json();
-        if (translateData && translateData.prompt) {
-            resultElement.textContent = `翻译成功: "${testPrompt}" -> "${translateData.prompt}"`;
+        
+        const data = await response.json();
+        if (data && data.tgt_text) {
+            return data.tgt_text;
         } else {
-            console.error('翻译API响应格式不正确:', translateData);
-            resultElement.textContent = '翻译API响应格式不正确。';
+            console.error('小牛翻译API响应格式不正确:', data);
+            return text;
         }
     } catch (error) {
-        console.error('调用翻译API时出错:', error);
-        resultElement.textContent = '调用翻译API时出错，请检查控制台获取更多信息。';
+        console.error('调用小牛翻译API时出错:', error);
+        return text;
     }
+}
+
+// 添加保存API密钥的函数
+function saveApiKey() {
+    const apiKey = document.getElementById('apiKeyInput').value.trim();
+    if (apiKey) {
+        localStorage.setItem('niutransApiKey', apiKey);
+        document.getElementById('apiKeyStatus').textContent = '✅ API密钥已保存';
+        
+        // 2秒后隐藏状态消息并关闭设置面板
+        setTimeout(() => {
+            document.getElementById('apiKeyStatus').textContent = '';
+            document.getElementById('apiSettings').classList.add('hidden');
+        }, 2000);
+    } else {
+        document.getElementById('apiKeyStatus').textContent = '❌ 请输入有效的API密钥';
+    }
+}
+
+// 添加清除API密钥的函数
+function clearApiKey() {
+    localStorage.removeItem('niutransApiKey');
+    document.getElementById('apiKeyInput').value = '';
+    document.getElementById('apiKeyStatus').textContent = '✅ API密钥已清除';
+    
+    // 2秒后隐藏状态消息
+    setTimeout(() => {
+        document.getElementById('apiKeyStatus').textContent = '';
+    }, 2000);
+}
+
+// 显示或隐藏API设置面板
+function toggleApiSettings() {
+    const settingsPanel = document.getElementById('apiSettings');
+    settingsPanel.classList.toggle('hidden');
+    
+    // 如果设置面板被显示，则填充已保存的API密钥
+    if (!settingsPanel.classList.contains('hidden')) {
+        const savedApiKey = localStorage.getItem('niutransApiKey') || '';
+        document.getElementById('apiKeyInput').value = savedApiKey;
+    }
+}
+
+// 检查API密钥状态并在界面显示
+function checkApiKeyStatus() {
+    const apiKey = localStorage.getItem('niutransApiKey');
+    const statusContainer = document.createElement('div');
+    statusContainer.className = 'fixed bottom-4 right-4 p-3 rounded-lg bg-gray-800 text-white text-sm z-50 opacity-80';
+    
+    if (apiKey) {
+        statusContainer.textContent = '✅ 翻译API已配置';
+        statusContainer.classList.add('bg-green-700');
+    } else {
+        statusContainer.textContent = '⚠️ 翻译API未配置，将使用原始提示词';
+        statusContainer.classList.add('bg-yellow-700');
+    }
+    
+    // 点击状态图标打开设置面板
+    statusContainer.style.cursor = 'pointer';
+    statusContainer.onclick = toggleApiSettings;
+    
+    document.body.appendChild(statusContainer);
+    
+    // 3秒后自动淡出
+    setTimeout(() => {
+        statusContainer.style.transition = 'opacity 1s ease';
+        statusContainer.style.opacity = '0';
+        setTimeout(() => {
+            document.body.removeChild(statusContainer);
+        }, 1000);
+    }, 3000);
 }
