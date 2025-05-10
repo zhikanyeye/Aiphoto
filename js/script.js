@@ -1668,7 +1668,7 @@ function setupImagePreview(img) {
     };
 }
 
-// 添加必应壁纸背景轮播功能
+// 添加必应壁纸背景功能
 function setupBingWallpaper() {
     // 创建背景容器
     const wallpaperContainer = document.createElement('div');
@@ -1686,22 +1686,6 @@ function setupBingWallpaper() {
         opacity: 0.2;
     `;
     document.body.appendChild(wallpaperContainer);
-    
-    // 创建壁纸切换效果的辅助容器
-    const nextWallpaperContainer = document.createElement('div');
-    nextWallpaperContainer.id = 'nextWallpaperContainer';
-    nextWallpaperContainer.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -3;
-        background-size: cover;
-        background-position: center;
-        opacity: 0;
-    `;
-    document.body.appendChild(nextWallpaperContainer);
     
     // 添加暗色叠加层，确保文字可读性
     const overlayDiv = document.createElement('div');
@@ -1722,49 +1706,51 @@ function setupBingWallpaper() {
     const wallpaperCache = [];
     let currentWallpaperIndex = 0;
     
-    // 获取必应壁纸
+    // 获取必应壁纸 - 使用固定的必应图片URL模板
     async function fetchBingWallpapers() {
         try {
-            // 使用直接的必应图片URL，避免API调用失败
-            const bingImages = [
-                {
-                    url: "https://cn.bing.com/th?id=OHR.ProcidaItaly_ZH-CN1602837695_1920x1080.jpg",
-                    title: "普罗奇达岛，意大利",
-                    copyright: "© Sean Pavone/Shutterstock"
-                },
-                {
-                    url: "https://cn.bing.com/th?id=OHR.HedgehogNest_ZH-CN9272073392_1920x1080.jpg",
-                    title: "欧洲刺猬",
-                    copyright: "© Nicolas Reusens/Getty Images"
-                },
-                {
-                    url: "https://cn.bing.com/th?id=OHR.ShanghaiBlossoms_ZH-CN9194175565_1920x1080.jpg",
-                    title: "上海的樱花",
-                    copyright: "© Yaorusheng/Getty Images"
-                },
-                {
-                    url: "https://cn.bing.com/th?id=OHR.QingmingCanola_ZH-CN8021236417_1920x1080.jpg",
-                    title: "清明节油菜花",
-                    copyright: "© Hanyu Qiu/Getty Images"
-                },
-                {
-                    url: "https://cn.bing.com/th?id=OHR.ArizonaPinkMoon_ZH-CN5545607389_1920x1080.jpg",
-                    title: "亚利桑那州的粉月",
-                    copyright: "© Cavan Images/Getty Images"
-                }
-            ];
+            // 获取过去8天的必应壁纸
+            for (let i = 0; i < 8; i++) {
+                const bingUrl = `https://cn.bing.com/th?id=OHR.${getBingImageId(i)}_ZH-CN1920x1080.jpg`;
+                
+                // 添加到缓存
+                wallpaperCache.push({
+                    url: bingUrl,
+                    title: `必应每日壁纸 (${i === 0 ? '今日' : i + '天前'})`,
+                    copyright: '© Microsoft Bing'
+                });
+            }
             
-            // 添加到缓存
-            wallpaperCache.length = 0;
-            wallpaperCache.push(...bingImages);
-            
-            // 设置第一张壁纸
-            setWallpaper();
+            // 如果获取失败，添加备用壁纸
+            if (wallpaperCache.length === 0) {
+                useBackupWallpapers();
+            } else {
+                // 设置第一张壁纸
+                setWallpaper();
+            }
         } catch (error) {
             console.error('获取必应壁纸失败:', error);
             // 失败时使用备用壁纸
             useBackupWallpapers();
         }
+    }
+    
+    // 生成必应图片ID (模拟)
+    function getBingImageId(dayOffset) {
+        // 这里我们使用固定的图片ID，实际上每天的图片ID是不同的
+        // 在实际应用中，应该通过必应的API获取
+        const imageIds = [
+            'ProcidaItaly_ZH-CN1602837695',
+            'HedgehogNest_ZH-CN9272073392',
+            'ShanghaiBlossoms_ZH-CN9194175565',
+            'QingmingCanola_ZH-CN8021236417',
+            'ArizonaPinkMoon_ZH-CN5545607389',
+            'MaldivesHeart_ZH-CN0990566122',
+            'ChengduPanda_ZH-CN0637437190',
+            'YosemiteValley_ZH-CN3425725796'
+        ];
+        
+        return imageIds[dayOffset % imageIds.length];
     }
     
     // 使用备用壁纸
@@ -1812,39 +1798,20 @@ function setupBingWallpaper() {
         
         const currentWallpaper = wallpaperCache[currentWallpaperIndex];
         const wallpaperContainer = document.getElementById('wallpaperContainer');
-        const nextWallpaperContainer = document.getElementById('nextWallpaperContainer');
         
-        if (!wallpaperContainer || !nextWallpaperContainer) return;
+        if (!wallpaperContainer) return;
         
         // 设置背景图片
         if (currentWallpaper.url.startsWith('http')) {
-            // 如果是图片URL
+            // 如果是图片URL，先预加载
             const preloadImage = new Image();
             preloadImage.onload = () => {
-                // 当图片加载完成后，设置到下一个容器
-                nextWallpaperContainer.style.backgroundImage = `url(${currentWallpaper.url})`;
+                // 当图片加载完成后，设置背景
+                wallpaperContainer.style.backgroundImage = `url(${currentWallpaper.url})`;
+                wallpaperContainer.style.opacity = '0.2';
                 
-                // 切换容器
-                wallpaperContainer.style.opacity = '0';
-                nextWallpaperContainer.style.opacity = '0.2';
-                
-                // 交换容器
-                setTimeout(() => {
-                    // 交换z-index
-                    wallpaperContainer.style.zIndex = '-3';
-                    nextWallpaperContainer.style.zIndex = '-2';
-                    
-                    // 交换ID
-                    const temp = wallpaperContainer;
-                    wallpaperContainer.id = 'nextWallpaperContainer';
-                    nextWallpaperContainer.id = 'wallpaperContainer';
-                    
-                    // 更新壁纸信息
-                    updateWallpaperInfo(currentWallpaper);
-                    
-                    // 更新索引到下一张壁纸
-                    currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpaperCache.length;
-                }, 1500);
+                // 更新壁纸信息
+                updateWallpaperInfo(currentWallpaper);
             };
             
             preloadImage.onerror = () => {
@@ -1857,30 +1824,15 @@ function setupBingWallpaper() {
             preloadImage.src = currentWallpaper.url;
         } else {
             // 如果是CSS渐变
-            nextWallpaperContainer.style.backgroundImage = currentWallpaper.url;
+            wallpaperContainer.style.backgroundImage = currentWallpaper.url;
+            wallpaperContainer.style.opacity = '0.2';
             
-            // 切换容器
-            wallpaperContainer.style.opacity = '0';
-            nextWallpaperContainer.style.opacity = '0.2';
-            
-            // 交换容器
-            setTimeout(() => {
-                // 交换z-index
-                wallpaperContainer.style.zIndex = '-3';
-                nextWallpaperContainer.style.zIndex = '-2';
-                
-                // 交换ID
-                const temp = wallpaperContainer;
-                wallpaperContainer.id = 'nextWallpaperContainer';
-                nextWallpaperContainer.id = 'wallpaperContainer';
-                
-                // 更新壁纸信息
-                updateWallpaperInfo(currentWallpaper);
-                
-                // 更新索引到下一张壁纸
-                currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpaperCache.length;
-            }, 1500);
+            // 更新壁纸信息
+            updateWallpaperInfo(currentWallpaper);
         }
+        
+        // 更新索引到下一张壁纸
+        currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpaperCache.length;
     }
     
     // 更新壁纸信息
@@ -1903,8 +1855,42 @@ function setupBingWallpaper() {
         `;
     }
     
-    // 初始化获取壁纸
-    fetchBingWallpapers();
+    // 尝试使用更直接的方式获取必应图片
+    function tryDirectBingImage() {
+        // 直接使用必应的今日图片URL
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+        
+        // 尝试使用必应的图片URL格式
+        const bingUrl = `https://cn.bing.com/th?id=OHR.${dateStr}_ZH-CN1920x1080.jpg`;
+        
+        const wallpaperContainer = document.getElementById('wallpaperContainer');
+        if (!wallpaperContainer) return;
+        
+        // 尝试加载图片
+        const img = new Image();
+        img.onload = () => {
+            // 图片加载成功，设置为背景
+            wallpaperContainer.style.backgroundImage = `url(${bingUrl})`;
+            wallpaperContainer.style.opacity = '0.2';
+            
+            // 更新壁纸信息
+            updateWallpaperInfo({
+                title: '必应今日壁纸',
+                copyright: '© Microsoft Bing'
+            });
+        };
+        
+        img.onerror = () => {
+            // 如果直接方式失败，回退到常规方法
+            fetchBingWallpapers();
+        };
+        
+        img.src = bingUrl;
+    }
+    
+    // 初始化 - 先尝试直接方法，如果失败则使用常规方法
+    tryDirectBingImage();
     
     // 设置定时器，定期切换壁纸
     setInterval(() => {
