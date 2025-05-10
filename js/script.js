@@ -1,54 +1,47 @@
-// 防止调试的代码 - 改为更温和的版本
+// 防止调试的代码
 (function() {
-    // 检测开发者工具 - 更友好的版本
+    // 检测开发者工具
     function detectDevTools() {
-        const widthThreshold = window.outerWidth - window.innerWidth > 200; // 增加阈值
+        const widthThreshold = window.outerWidth - window.innerWidth > 200;
         const heightThreshold = window.outerHeight - window.innerHeight > 200;
         
         if (widthThreshold || heightThreshold) {
             console.warn('检测到开发者工具已打开，部分功能可能受限');
-            // 不完全阻止页面使用，只显示警告
             return true;
         }
         return false;
     }
     
-    // 降低检查频率，减少对性能的影响
-    setInterval(detectDevTools, 3000); // 从1秒改为3秒
+    setInterval(detectDevTools, 3000);
     
-    // 以下调试干扰代码只在检测到爬虫模式时激活
     const isBot = navigator.userAgent.toLowerCase().indexOf('bot') > -1 ||
                   navigator.userAgent.toLowerCase().indexOf('spider') > -1 ||
                   navigator.userAgent.toLowerCase().indexOf('crawl') > -1;
     
     if (isBot) {
-        // 监控调试状态 - 仅针对可能的爬虫
         const debug = function() {
-            debugger; // 这会使调试变得困难
+            debugger;
         };
         
-        // 密集调用debug函数以阻止顺畅调试 - 仅对爬虫
         const debugLoop = function() {
             try {
                 if (isDevToolsOpen()) {
                     debug();
                 }
             } catch (e) {}
-            setTimeout(debugLoop, 300); // 增加时间间隔减轻CPU负担
+            setTimeout(debugLoop, 300);
         };
         
         function isDevToolsOpen() {
-            // 检测性能时间差异 - 打开开发者工具时会变慢
             const start = performance.now();
-            for (let i = 0; i < 300; i++) { // 减少循环次数
+            for (let i = 0; i < 300; i++) {
                 console.log(i);
                 console.clear();
             }
             const end = performance.now();
-            return (end - start) > 200; // 增加时间差异阈值
+            return (end - start) > 200;
         }
         
-        // 启动防护循环
         setTimeout(debugLoop, 2000);
     }
 })();
@@ -179,13 +172,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 添加公告弹窗
     const announcement = document.createElement('div');
-    announcement.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-lg shadow-2xl z-50 max-w-md w-full mx-4 animate-fade-in';
+    announcement.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 md:p-6 rounded-lg shadow-2xl z-50 max-w-md w-[90%] md:w-full mx-auto animate-fade-in';
     announcement.innerHTML = `
         <div class="text-center">
-            <h3 class="text-xl font-bold mb-4">✨ 特别鸣谢 ✨</h3>
-            <p class="mb-4">感谢 <a href="https://pollinations.ai" target="_blank" class="underline hover:text-pink-200">Pollinations.ai</a> 提供的优质图片生成服务</p>
-            <p class="mb-4">本站由 <a href="https://github.com/zhikanyeye" target="_blank" class="underline hover:text-pink-200">@zhikanyeye</a> 维护</p>
-            <button onclick="this.parentElement.parentElement.remove()" class="bg-white text-purple-600 px-6 py-2 rounded-full hover:bg-pink-100 transition-colors">
+            <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4">✨ 特别鸣谢 ✨</h3>
+            <p class="mb-3 md:mb-4 text-sm md:text-base">感谢 <a href="https://pollinations.ai" target="_blank" class="underline hover:text-pink-200">Pollinations.ai</a> 提供的优质图片生成服务</p>
+            <p class="mb-3 md:mb-4 text-sm md:text-base">本站由 <a href="https://github.com/zhikanyeye" target="_blank" class="underline hover:text-pink-200">@zhikanyeye</a> 维护</p>
+            <button onclick="this.parentElement.parentElement.remove()" class="bg-white text-purple-600 px-4 md:px-6 py-1 md:py-2 rounded-full hover:bg-pink-100 transition-colors text-sm md:text-base">
                 知道了
             </button>
         </div>
@@ -225,8 +218,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 监听窗口大小变化
     window.addEventListener('resize', adjustLayoutForMobile);
     
-    // 初始化必应壁纸背景
-    setupBingWallpaper();
+    // 设置简单的渐变背景
+    document.body.style.background = 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)';
     
     // 初始化参数提示工具提示
     setTimeout(initializeTooltips, 100);
@@ -1263,6 +1256,7 @@ async function generateImage() {
 // 定义一个响应式布局调整函数
 function adjustLayoutForMobile() {
     const isMobile = window.innerWidth < 768;
+    const isSmallMobile = window.innerWidth < 480;
     
     // 动态调整参数面板布局
     const paramsContainer = document.querySelector('.grid-cols-1.md\\:grid-cols-2');
@@ -1281,12 +1275,37 @@ function adjustLayoutForMobile() {
     // 调整预览图片大小
     const previewImage = document.getElementById('previewImage');
     if (previewImage) {
-        if (isMobile) {
-            previewImage.classList.remove('max-h-[85vh]');
+        if (isSmallMobile) {
+            previewImage.classList.remove('max-h-[80vh]', 'max-h-[85vh]');
+            previewImage.classList.add('max-h-[75vh]');
+        } else if (isMobile) {
+            previewImage.classList.remove('max-h-[75vh]', 'max-h-[85vh]');
             previewImage.classList.add('max-h-[80vh]');
         } else {
-            previewImage.classList.remove('max-h-[80vh]');
+            previewImage.classList.remove('max-h-[75vh]', 'max-h-[80vh]');
             previewImage.classList.add('max-h-[85vh]');
+        }
+    }
+    
+    // 调整质量标签区域
+    const qualityTags = document.getElementById('qualityTags');
+    if (qualityTags) {
+        if (isSmallMobile) {
+            qualityTags.classList.add('text-xs');
+        } else {
+            qualityTags.classList.remove('text-xs');
+        }
+    }
+    
+    // 调整灵感库区域
+    const inspirationList = document.getElementById('inspirationList');
+    if (inspirationList) {
+        if (isMobile) {
+            inspirationList.classList.remove('max-h-[400px]');
+            inspirationList.classList.add('max-h-[200px]');
+        } else {
+            inspirationList.classList.remove('max-h-[200px]');
+            inspirationList.classList.add('max-h-[400px]');
         }
     }
 }
@@ -1591,16 +1610,16 @@ function createImagePreview() {
     previewOverlay.id = 'previewOverlay';
     
     const previewContainer = document.createElement('div');
-    previewContainer.className = 'relative max-w-[90vw] max-h-[90vh]';
+    previewContainer.className = 'relative max-w-[95vw] md:max-w-[90vw] max-h-[95vh] md:max-h-[90vh]';
     
     const previewImage = document.createElement('img');
-    previewImage.className = 'max-w-full max-h-[85vh] object-contain rounded shadow-xl';
+    previewImage.className = 'max-w-full max-h-[80vh] md:max-h-[85vh] object-contain rounded shadow-xl';
     previewImage.id = 'previewImage';
     previewImage.style.transform = 'scale(0.95)';
     previewImage.style.transition = 'all 0.3s ease';
     
     const closeBtn = document.createElement('button');
-    closeBtn.className = 'absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-black bg-opacity-50 text-white rounded-full text-2xl hover:bg-opacity-70 transition-all';
+    closeBtn.className = 'absolute top-2 md:top-4 right-2 md:right-4 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-black bg-opacity-50 text-white rounded-full text-xl md:text-2xl hover:bg-opacity-70 transition-all';
     closeBtn.innerHTML = '×';
     closeBtn.onclick = () => {
         previewImage.style.transform = 'scale(0.95)';
@@ -1610,8 +1629,8 @@ function createImagePreview() {
     };
     
     const downloadBtn = document.createElement('button');
-    downloadBtn.className = 'absolute bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all flex items-center';
-    downloadBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> 下载图片';
+    downloadBtn.className = 'absolute bottom-2 md:bottom-4 right-2 md:right-4 bg-blue-600 text-white px-3 md:px-4 py-1 md:py-2 rounded-lg hover:bg-blue-700 transition-all flex items-center text-sm md:text-base';
+    downloadBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 mr-1 md:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> 下载图片';
     downloadBtn.id = 'previewDownloadBtn';
     
     previewContainer.appendChild(previewImage);
@@ -1666,236 +1685,6 @@ function setupImagePreview(img) {
             previewImage.style.transform = 'scale(1)';
         }, 50);
     };
-}
-
-// 添加必应壁纸背景功能
-function setupBingWallpaper() {
-    // 创建背景容器
-    const wallpaperContainer = document.createElement('div');
-    wallpaperContainer.id = 'wallpaperContainer';
-    wallpaperContainer.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -2;
-        background-size: cover;
-        background-position: center;
-        transition: opacity 1.5s ease;
-        opacity: 0.2;
-    `;
-    document.body.appendChild(wallpaperContainer);
-    
-    // 添加暗色叠加层，确保文字可读性
-    const overlayDiv = document.createElement('div');
-    overlayDiv.id = 'backgroundOverlay';
-    overlayDiv.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        background: rgba(255, 255, 255, 0.85);
-        pointer-events: none;
-    `;
-    document.body.appendChild(overlayDiv);
-    
-    // 壁纸缓存
-    const wallpaperCache = [];
-    let currentWallpaperIndex = 0;
-    
-    // 获取必应壁纸 - 使用固定的必应图片URL模板
-    async function fetchBingWallpapers() {
-        try {
-            // 获取过去8天的必应壁纸
-            for (let i = 0; i < 8; i++) {
-                const bingUrl = `https://cn.bing.com/th?id=OHR.${getBingImageId(i)}_ZH-CN1920x1080.jpg`;
-                
-                // 添加到缓存
-                wallpaperCache.push({
-                    url: bingUrl,
-                    title: `必应每日壁纸 (${i === 0 ? '今日' : i + '天前'})`,
-                    copyright: '© Microsoft Bing'
-                });
-            }
-            
-            // 如果获取失败，添加备用壁纸
-            if (wallpaperCache.length === 0) {
-                useBackupWallpapers();
-            } else {
-                // 设置第一张壁纸
-                setWallpaper();
-            }
-        } catch (error) {
-            console.error('获取必应壁纸失败:', error);
-            // 失败时使用备用壁纸
-            useBackupWallpapers();
-        }
-    }
-    
-    // 生成必应图片ID (模拟)
-    function getBingImageId(dayOffset) {
-        // 这里我们使用固定的图片ID，实际上每天的图片ID是不同的
-        // 在实际应用中，应该通过必应的API获取
-        const imageIds = [
-            'ProcidaItaly_ZH-CN1602837695',
-            'HedgehogNest_ZH-CN9272073392',
-            'ShanghaiBlossoms_ZH-CN9194175565',
-            'QingmingCanola_ZH-CN8021236417',
-            'ArizonaPinkMoon_ZH-CN5545607389',
-            'MaldivesHeart_ZH-CN0990566122',
-            'ChengduPanda_ZH-CN0637437190',
-            'YosemiteValley_ZH-CN3425725796'
-        ];
-        
-        return imageIds[dayOffset % imageIds.length];
-    }
-    
-    // 使用备用壁纸
-    function useBackupWallpapers() {
-        // 预定义的渐变背景作为备用
-        const backupWallpapers = [
-            {
-                url: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-                title: '淡蓝渐变',
-                copyright: '备用壁纸'
-            },
-            {
-                url: 'linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%)',
-                title: '天空渐变',
-                copyright: '备用壁纸'
-            },
-            {
-                url: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8ef 100%)',
-                title: '云雾渐变',
-                copyright: '备用壁纸'
-            },
-            {
-                url: 'linear-gradient(135deg, #dfe9f3 0%, white 100%)',
-                title: '轻柔渐变',
-                copyright: '备用壁纸'
-            },
-            {
-                url: 'linear-gradient(135deg, #f0f2f5 0%, #e0e6ed 100%)',
-                title: '淡灰渐变',
-                copyright: '备用壁纸'
-            }
-        ];
-        
-        // 清除缓存并添加备用壁纸
-        wallpaperCache.length = 0;
-        wallpaperCache.push(...backupWallpapers);
-        
-        // 设置第一张备用壁纸
-        setWallpaper();
-    }
-    
-    // 设置壁纸
-    function setWallpaper() {
-        if (wallpaperCache.length === 0) return;
-        
-        const currentWallpaper = wallpaperCache[currentWallpaperIndex];
-        const wallpaperContainer = document.getElementById('wallpaperContainer');
-        
-        if (!wallpaperContainer) return;
-        
-        // 设置背景图片
-        if (currentWallpaper.url.startsWith('http')) {
-            // 如果是图片URL，先预加载
-            const preloadImage = new Image();
-            preloadImage.onload = () => {
-                // 当图片加载完成后，设置背景
-                wallpaperContainer.style.backgroundImage = `url(${currentWallpaper.url})`;
-                wallpaperContainer.style.opacity = '0.2';
-                
-                // 更新壁纸信息
-                updateWallpaperInfo(currentWallpaper);
-            };
-            
-            preloadImage.onerror = () => {
-                console.warn('壁纸加载失败:', currentWallpaper.url);
-                // 尝试下一张壁纸
-                currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpaperCache.length;
-                setWallpaper();
-            };
-            
-            preloadImage.src = currentWallpaper.url;
-        } else {
-            // 如果是CSS渐变
-            wallpaperContainer.style.backgroundImage = currentWallpaper.url;
-            wallpaperContainer.style.opacity = '0.2';
-            
-            // 更新壁纸信息
-            updateWallpaperInfo(currentWallpaper);
-        }
-        
-        // 更新索引到下一张壁纸
-        currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpaperCache.length;
-    }
-    
-    // 更新壁纸信息
-    function updateWallpaperInfo(wallpaper) {
-        const infoElement = document.getElementById('wallpaperInfo');
-        if (!infoElement) return;
-        
-        // 如果是备用壁纸，显示简单信息
-        if (wallpaper.copyright === '备用壁纸') {
-            infoElement.textContent = `${wallpaper.title}`;
-            return;
-        }
-        
-        // 显示必应壁纸信息
-        infoElement.innerHTML = `
-            <div>
-                <div class="text-xs opacity-80">${wallpaper.title || '今日壁纸'}</div>
-                <div class="text-xs opacity-60">${wallpaper.copyright || '© Bing'}</div>
-            </div>
-        `;
-    }
-    
-    // 尝试使用更直接的方式获取必应图片
-    function tryDirectBingImage() {
-        // 直接使用必应的今日图片URL
-        const today = new Date();
-        const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
-        
-        // 尝试使用必应的图片URL格式
-        const bingUrl = `https://cn.bing.com/th?id=OHR.${dateStr}_ZH-CN1920x1080.jpg`;
-        
-        const wallpaperContainer = document.getElementById('wallpaperContainer');
-        if (!wallpaperContainer) return;
-        
-        // 尝试加载图片
-        const img = new Image();
-        img.onload = () => {
-            // 图片加载成功，设置为背景
-            wallpaperContainer.style.backgroundImage = `url(${bingUrl})`;
-            wallpaperContainer.style.opacity = '0.2';
-            
-            // 更新壁纸信息
-            updateWallpaperInfo({
-                title: '必应今日壁纸',
-                copyright: '© Microsoft Bing'
-            });
-        };
-        
-        img.onerror = () => {
-            // 如果直接方式失败，回退到常规方法
-            fetchBingWallpapers();
-        };
-        
-        img.src = bingUrl;
-    }
-    
-    // 初始化 - 先尝试直接方法，如果失败则使用常规方法
-    tryDirectBingImage();
-    
-    // 设置定时器，定期切换壁纸
-    setInterval(() => {
-        setWallpaper();
-    }, 15000); // 每15秒切换一次
 }
 
 // 添加灵感项目

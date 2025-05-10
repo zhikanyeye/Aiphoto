@@ -17,14 +17,22 @@ body {
 .preview {
     border: 2px dashed #4f46e5;
     border-radius: 1.5rem;
-    padding: 2rem;
-    min-height: 300px;
+    padding: 1rem;
+    min-height: 250px;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(255, 255, 255, 0.05);
 }
+
+@media (min-width: 768px) {
+    .preview {
+        padding: 2rem;
+        min-height: 300px;
+    }
+}
+
 .loading {
     animation: pulse 1.5s infinite;
 }
@@ -46,17 +54,28 @@ body {
 
 .download-btn {
     position: absolute;
-    bottom: 10px;
-    right: 10px;
+    bottom: 5px;
+    right: 5px;
     background: rgba(37, 99, 235, 0.9);
     color: white;
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s;
     opacity: 0;
     z-index: 10;
+    font-size: 0.875rem;
 }
+
+@media (min-width: 768px) {
+    .download-btn {
+        bottom: 10px;
+        right: 10px;
+        padding: 8px 16px;
+        font-size: 1rem;
+    }
+}
+
 .preview:hover .download-btn {
     opacity: 1;
 }
@@ -65,14 +84,24 @@ body {
 }
 .quality-tag {
     display: inline-block;
-    padding: 4px 8px;
-    margin: 2px;
+    padding: 3px 6px;
+    margin: 1px;
     border-radius: 4px;
     background: rgba(79, 70, 229, 0.1);
     cursor: pointer;
     user-select: none;
     transition: all 0.2s ease;
+    font-size: 0.875rem;
 }
+
+@media (min-width: 768px) {
+    .quality-tag {
+        padding: 4px 8px;
+        margin: 2px;
+        font-size: 1rem;
+    }
+}
+
 .quality-tag.active {
     background: rgba(79, 70, 229, 0.3);
     color: #4F46E5;
@@ -91,8 +120,11 @@ body {
     border-radius: 1rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     background: white;
-    width: 90%;
+    width: 95%;
     max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1rem;
 }
 
 /* 提示文字样式增强 */
@@ -107,24 +139,9 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* 必应壁纸信息样式 */
-#wallpaperInfo {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    opacity: 0.7;
-    transition: opacity 0.3s;
-    z-index: 10;
-    pointer-events: none;
-}
-#wallpaperInfo:hover {
-    opacity: 1;
-}
+/* 必应壁纸样式 - 已禁用 */
+/* 
+*/
 
 /* 参数提示工具提示样式 */
 .tooltip {

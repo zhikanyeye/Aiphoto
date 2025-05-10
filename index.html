@@ -94,8 +94,7 @@ Allow: /index.html
     </script>
 </head>
 <body class="min-h-screen p-4 md:p-8">
-    <!-- 添加壁纸信息显示区域 -->
-    <div id="wallpaperInfo"></div>
+    <!-- 壁纸信息显示区域已移除 -->
     
     <div class="max-w-4xl mx-auto space-y-8">
         <!-- API设置按钮 -->
@@ -153,11 +152,11 @@ Allow: /index.html
                         <textarea
                             id="prompt"
                             placeholder="描述你想要生成的图片内容..."
-                            class="w-full p-4 text-lg rounded-lg focus:ring-4 focus:ring-blue-300 h-24 resize-none"
+                            class="w-full p-3 md:p-4 text-base md:text-lg rounded-lg focus:ring-4 focus:ring-blue-300 h-20 md:h-24 resize-none"
                             onkeydown="handleKeyPress(event)"
                         ></textarea>
                         <div class="absolute right-3 top-3 transition-opacity duration-300" id="promptHint">
-                            <span class="text-sm font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded-md">按Enter快速生成</span>
+                            <span class="text-xs md:text-sm font-medium bg-blue-50 text-blue-600 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md">按Enter快速生成</span>
                         </div>
                     </div>
                     <div id="apiStatusMessage" class="text-sm text-gray-500 mt-1 h-5"></div>
@@ -322,7 +321,7 @@ Allow: /index.html
                         <button 
                             onclick="generateImage()"
                             id="generateBtn"
-                            class="px-8 py-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-lg font-semibold"
+                            class="px-6 md:px-8 py-3 md:py-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-base md:text-lg font-semibold"
                         >
                             🎨 生成图片
                         </button>
