@@ -1,0 +1,167 @@
+/* 主要样式 */
+body {
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+}
+
+.card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: all 0.3s ease;
+}
+
+.preview {
+    border: 2px dashed #4f46e5;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    min-height: 300px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+}
+.loading {
+    animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+.inspiration-item {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+.inspiration-item:hover {
+    background: rgba(79, 70, 229, 0.1);
+    transform: translateX(5px);
+    border-color: rgba(79, 70, 229, 0.3);
+}
+
+.download-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(37, 99, 235, 0.9);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    opacity: 0;
+    z-index: 10;
+}
+.preview:hover .download-btn {
+    opacity: 1;
+}
+.download-btn:hover {
+    background: rgba(29, 78, 216, 1);
+}
+.quality-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: 4px;
+    background: rgba(79, 70, 229, 0.1);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+.quality-tag.active {
+    background: rgba(79, 70, 229, 0.3);
+    color: #4F46E5;
+    transform: translateY(-1px);
+}
+.quality-tag:hover {
+    background: rgba(79, 70, 229, 0.2);
+}
+/* API设置面板样式 */
+.settings-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    background: white;
+    width: 90%;
+    max-width: 400px;
+}
+
+/* 提示文字样式增强 */
+#promptHint {
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+    user-select: none;
+    z-index: 5;
+}
+
+#promptHint span {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 必应壁纸信息样式 */
+#wallpaperInfo {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+    z-index: 10;
+    pointer-events: none;
+}
+#wallpaperInfo:hover {
+    opacity: 1;
+}
+
+/* 参数提示工具提示样式 */
+.tooltip {
+    position: absolute;
+    background-color: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    z-index: 100;
+    width: 250px;
+    top: -5px;
+    left: 25px;
+    font-size: 12px;
+    line-height: 1.4;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    transition: opacity 0.3s;
+}
+
+.tooltip::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: -6px;
+    border-width: 6px 6px 6px 0;
+    border-style: solid;
+    border-color: transparent #333 transparent transparent;
+}
+
+.param-help {
+    cursor: help;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+} 

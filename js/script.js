@@ -216,9 +216,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 5000);
 
-    // 添加参数控制面板
-    addImageParameters();
-    
     // 创建图片预览功能
     createImagePreview();
     
