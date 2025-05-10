@@ -771,9 +771,10 @@ async function aiEnhancePrompt() {
     promptInput.value = enhancedResult.chinese;
     apiStatusMessage.textContent = '✅ 提示词已优化！';
     
-    // 延迟清除状态消息
+    // 延迟清除状态消息 - 确保一定会清除
     setTimeout(() => {
-        if (apiStatusMessage.textContent === '✅ 提示词已优化！') {
+        if (apiStatusMessage.textContent === '✅ 提示词已优化！' || 
+            apiStatusMessage.textContent === '🤖 正在通过Pollinations AI优化提示词...') {
             apiStatusMessage.textContent = '';
         }
     }, 3000);
@@ -1630,7 +1631,7 @@ function setupBingWallpaper() {
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: -1;
+        z-index: -2;
         background-size: cover;
         background-position: center;
         transition: opacity 1.5s ease;
@@ -1647,7 +1648,7 @@ function setupBingWallpaper() {
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: -2;
+        z-index: -3;
         background-size: cover;
         background-position: center;
         opacity: 0;
@@ -1656,6 +1657,7 @@ function setupBingWallpaper() {
     
     // 添加暗色叠加层，确保文字可读性
     const overlayDiv = document.createElement('div');
+    overlayDiv.id = 'backgroundOverlay';
     overlayDiv.style.cssText = `
         position: fixed;
         top: 0;
@@ -1663,7 +1665,7 @@ function setupBingWallpaper() {
         width: 100%;
         height: 100%;
         z-index: -1;
-        background: rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.85);
         pointer-events: none;
     `;
     document.body.appendChild(overlayDiv);
@@ -1672,7 +1674,7 @@ function setupBingWallpaper() {
     const wallpaperCache = [];
     let currentWallpaperIndex = 0;
     
-    // 获取必应壁纸 - 使用更可靠的API
+    // 获取必应壁纸
     async function fetchBingWallpapers() {
         try {
             // 使用直接的必应图片URL，避免API调用失败
@@ -1764,7 +1766,9 @@ function setupBingWallpaper() {
         const wallpaperContainer = document.getElementById('wallpaperContainer');
         const nextWallpaperContainer = document.getElementById('nextWallpaperContainer');
         
-        // 预加载下一张壁纸
+        if (!wallpaperContainer || !nextWallpaperContainer) return;
+        
+        // 设置背景图片
         if (currentWallpaper.url.startsWith('http')) {
             // 如果是图片URL
             const preloadImage = new Image();
@@ -1773,30 +1777,28 @@ function setupBingWallpaper() {
                 nextWallpaperContainer.style.backgroundImage = `url(${currentWallpaper.url})`;
                 
                 // 切换容器
+                wallpaperContainer.style.opacity = '0';
+                nextWallpaperContainer.style.opacity = '0.2';
+                
+                // 交换容器
                 setTimeout(() => {
-                    wallpaperContainer.style.opacity = '0';
-                    nextWallpaperContainer.style.opacity = '0.2';
+                    // 交换z-index
+                    wallpaperContainer.style.zIndex = '-3';
+                    nextWallpaperContainer.style.zIndex = '-2';
                     
-                    // 等待过渡完成后交换z-index
-                    setTimeout(() => {
-                        const temp = wallpaperContainer.style.zIndex;
-                        wallpaperContainer.style.zIndex = nextWallpaperContainer.style.zIndex;
-                        nextWallpaperContainer.style.zIndex = temp;
-                        
-                        // 重置透明度
-                        wallpaperContainer.style.opacity = '0';
-                        nextWallpaperContainer.style.opacity = '0.2';
-                        
-                        // 交换引用
-                        const tempContainer = wallpaperContainer;
-                        document.getElementById('wallpaperContainer').id = 'tempContainer';
-                        document.getElementById('nextWallpaperContainer').id = 'wallpaperContainer';
-                        document.getElementById('tempContainer').id = 'nextWallpaperContainer';
-                    }, 1500); // 等待过渡完成
-                }, 100);
+                    // 交换ID
+                    const temp = wallpaperContainer;
+                    wallpaperContainer.id = 'nextWallpaperContainer';
+                    nextWallpaperContainer.id = 'wallpaperContainer';
+                    
+                    // 更新壁纸信息
+                    updateWallpaperInfo(currentWallpaper);
+                    
+                    // 更新索引到下一张壁纸
+                    currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpaperCache.length;
+                }, 1500);
             };
             
-            // 添加错误处理
             preloadImage.onerror = () => {
                 console.warn('壁纸加载失败:', currentWallpaper.url);
                 // 尝试下一张壁纸
@@ -1810,34 +1812,27 @@ function setupBingWallpaper() {
             nextWallpaperContainer.style.backgroundImage = currentWallpaper.url;
             
             // 切换容器
+            wallpaperContainer.style.opacity = '0';
+            nextWallpaperContainer.style.opacity = '0.2';
+            
+            // 交换容器
             setTimeout(() => {
-                wallpaperContainer.style.opacity = '0';
-                nextWallpaperContainer.style.opacity = '0.2';
+                // 交换z-index
+                wallpaperContainer.style.zIndex = '-3';
+                nextWallpaperContainer.style.zIndex = '-2';
                 
-                // 等待过渡完成后交换z-index
-                setTimeout(() => {
-                    const temp = wallpaperContainer.style.zIndex;
-                    wallpaperContainer.style.zIndex = nextWallpaperContainer.style.zIndex;
-                    nextWallpaperContainer.style.zIndex = temp;
-                    
-                    // 重置透明度
-                    wallpaperContainer.style.opacity = '0';
-                    nextWallpaperContainer.style.opacity = '0.2';
-                    
-                    // 交换引用
-                    const tempContainer = wallpaperContainer;
-                    document.getElementById('wallpaperContainer').id = 'tempContainer';
-                    document.getElementById('nextWallpaperContainer').id = 'wallpaperContainer';
-                    document.getElementById('tempContainer').id = 'nextWallpaperContainer';
-                }, 1500); // 等待过渡完成
-            }, 100);
+                // 交换ID
+                const temp = wallpaperContainer;
+                wallpaperContainer.id = 'nextWallpaperContainer';
+                nextWallpaperContainer.id = 'wallpaperContainer';
+                
+                // 更新壁纸信息
+                updateWallpaperInfo(currentWallpaper);
+                
+                // 更新索引到下一张壁纸
+                currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpaperCache.length;
+            }, 1500);
         }
-        
-        // 更新壁纸信息
-        updateWallpaperInfo(currentWallpaper);
-        
-        // 更新索引到下一张壁纸
-        currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpaperCache.length;
     }
     
     // 更新壁纸信息
