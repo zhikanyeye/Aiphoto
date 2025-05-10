@@ -1034,6 +1034,23 @@ window.updateStyleValue = function(value) {
     document.getElementById('styleValue').textContent = value;
 }
 
+// 添加一个全局变量来存储上一次生成的参数
+let lastGenerationParams = {
+    prompt: '',
+    englishPrompt: '',
+    width: '',
+    height: '',
+    count: 1,
+    steps: 50,
+    cfgScale: 7,
+    negativePrompt: '',
+    seed: '',
+    sampler: 'euler_a',
+    noise: 0.2,
+    styleStrength: 0.6,
+    qualityTags: []
+};
+
 // 修改generateImage函数，优化图片加载和预览功能
 async function generateImage() {
     const basePrompt = document.getElementById('prompt').value;
@@ -1046,67 +1063,13 @@ async function generateImage() {
     generateBtn.disabled = true;
     generateBtn.textContent = '🎨 生成中...';
 
+    // 检查描述词是否改变
+    const promptChanged = basePrompt !== lastGenerationParams.prompt;
+    
+    // 获取当前所有参数
     const qualityTags = getSelectedTags('qualityTags');
-    let englishPrompt = basePrompt;
-    const apiStatusMessage = document.getElementById('apiStatusMessage');
-    apiStatusMessage.textContent = ''; // 清空之前的消息
-
-    // 优先使用AI优化的英文提示词
-    const aiEnhancedEnglish = document.getElementById('prompt').dataset.aiEnhancedEnglish;
-    if (aiEnhancedEnglish) {
-        englishPrompt = aiEnhancedEnglish;
-        apiStatusMessage.textContent = '使用AI优化的英文提示词';
-        document.getElementById('prompt').dataset.aiEnhancedEnglish = '';
-    } else {
-        const promptEnhancementsData = document.getElementById('prompt').dataset.enhancements || '';
-        const enhancementsArray = promptEnhancementsData ? promptEnhancementsData.split(',') : [];
-
-        const matchedInspiration = inspirations.find(insp => 
-            insp.split('|')[0].trim().includes(basePrompt) || 
-            insp.includes(basePrompt)
-        );
-
-        if (matchedInspiration) {
-            englishPrompt = matchedInspiration.split('|')[1].trim();
-            apiStatusMessage.textContent = '提示词已从灵感库匹配。';
-        } else {
-            apiStatusMessage.textContent = '正在翻译提示词...';
-            try {
-                const translatedText = await translateWithNiutrans(basePrompt);
-                if (translatedText !== basePrompt) {
-                    englishPrompt = translatedText;
-                    apiStatusMessage.textContent = '提示词翻译成功！';
-                } else {
-                    apiStatusMessage.textContent = '翻译未配置或失败，将使用原始提示词。';
-                }
-            } catch (error) {
-                console.error('调用翻译API时出错:', error);
-                apiStatusMessage.textContent = '翻译API调用出错，将使用原始提示词。';
-            }
-        }
-        
-        if (enhancementsArray.length > 0) {
-            englishPrompt += ', ' + enhancementsArray.join(', ');
-            document.getElementById('prompt').dataset.enhancements = '';
-        }
-    }
-
-    setTimeout(() => {
-        if (apiStatusMessage.textContent.includes('翻译') || 
-            apiStatusMessage.textContent.includes('匹配') ||
-            apiStatusMessage.textContent.includes('AI优化')) {
-            apiStatusMessage.textContent = '';
-        }
-    }, 3000);
-
-    let fullPrompt = `${englishPrompt}, ${qualityTags.join(', ')}, highly detailed`;
-
     const [width, height] = document.getElementById('aspectRatio').value.split(':');
     const count = parseInt(document.getElementById('generateCount').value);
-    const previewContainer = document.getElementById('previewContainer');
-    previewContainer.innerHTML = '';
-    
-    // 获取所有生成参数
     const steps = document.getElementById('steps').value;
     const cfgScale = document.getElementById('cfgScale').value;
     const negativePrompt = document.getElementById('negativePrompt').value;
@@ -1114,6 +1077,91 @@ async function generateImage() {
     const sampler = document.getElementById('sampler').value;
     const noise = document.getElementById('noise').value;
     const styleStrength = document.getElementById('styleStrength').value;
+    
+    // 更新参数缓存
+    lastGenerationParams.prompt = basePrompt;
+    lastGenerationParams.width = width;
+    lastGenerationParams.height = height;
+    lastGenerationParams.count = count;
+    lastGenerationParams.steps = steps;
+    lastGenerationParams.cfgScale = cfgScale;
+    lastGenerationParams.negativePrompt = negativePrompt;
+    lastGenerationParams.seed = userSeedInputValue;
+    lastGenerationParams.sampler = sampler;
+    lastGenerationParams.noise = noise;
+    lastGenerationParams.styleStrength = styleStrength;
+    lastGenerationParams.qualityTags = qualityTags;
+    
+    // 状态消息处理
+    const apiStatusMessage = document.getElementById('apiStatusMessage');
+    apiStatusMessage.textContent = ''; // 清空之前的消息
+    
+    // 确定英文提示词 - 仅在描述词改变时重新处理
+    let englishPrompt;
+    if (promptChanged) {
+        // 优先使用AI优化的英文提示词
+        const aiEnhancedEnglish = document.getElementById('prompt').dataset.aiEnhancedEnglish;
+        if (aiEnhancedEnglish) {
+            englishPrompt = aiEnhancedEnglish;
+            apiStatusMessage.textContent = '使用AI优化的英文提示词';
+            document.getElementById('prompt').dataset.aiEnhancedEnglish = '';
+        } else {
+            const promptEnhancementsData = document.getElementById('prompt').dataset.enhancements || '';
+            const enhancementsArray = promptEnhancementsData ? promptEnhancementsData.split(',') : [];
+
+            const matchedInspiration = inspirations.find(insp => 
+                insp.split('|')[0].trim().includes(basePrompt) || 
+                insp.includes(basePrompt)
+            );
+
+            if (matchedInspiration) {
+                englishPrompt = matchedInspiration.split('|')[1].trim();
+                apiStatusMessage.textContent = '提示词已从灵感库匹配。';
+            } else {
+                apiStatusMessage.textContent = '正在翻译提示词...';
+                try {
+                    const translatedText = await translateWithNiutrans(basePrompt);
+                    if (translatedText !== basePrompt) {
+                        englishPrompt = translatedText;
+                        apiStatusMessage.textContent = '提示词翻译成功！';
+                    } else {
+                        englishPrompt = basePrompt;
+                        apiStatusMessage.textContent = '翻译未配置或失败，将使用原始提示词。';
+                    }
+                } catch (error) {
+                    console.error('调用翻译API时出错:', error);
+                    englishPrompt = basePrompt;
+                    apiStatusMessage.textContent = '翻译API调用出错，将使用原始提示词。';
+                }
+            }
+            
+            if (enhancementsArray.length > 0) {
+                englishPrompt += ', ' + enhancementsArray.join(', ');
+                document.getElementById('prompt').dataset.enhancements = '';
+            }
+        }
+        
+        // 缓存英文提示词
+        lastGenerationParams.englishPrompt = englishPrompt;
+    } else {
+        // 如果描述词没变，使用上次的英文提示词
+        englishPrompt = lastGenerationParams.englishPrompt;
+        apiStatusMessage.textContent = '使用相同描述词，仅更新参数';
+    }
+
+    setTimeout(() => {
+        if (apiStatusMessage.textContent.includes('翻译') || 
+            apiStatusMessage.textContent.includes('匹配') ||
+            apiStatusMessage.textContent.includes('AI优化') ||
+            apiStatusMessage.textContent.includes('使用相同描述词')) {
+            apiStatusMessage.textContent = '';
+        }
+    }, 3000);
+
+    let fullPrompt = `${englishPrompt}, ${qualityTags.join(', ')}, highly detailed`;
+    
+    const previewContainer = document.getElementById('previewContainer');
+    previewContainer.innerHTML = '';
 
     try {
         for (let i = 0; i < count; i++) {
@@ -1154,7 +1202,7 @@ async function generateImage() {
             infoBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
             infoBtn.onclick = (e) => {
                 e.stopPropagation();
-                alert(`图像参数信息:\n种子: ${currentSeed}\n采样步数: ${steps}\nCFG Scale: ${cfgScale}\n采样方法: ${sampler}\n噪声强度: ${noise}\n风格强度: ${styleStrength}`);
+                alert(`图像参数信息:\n种子: ${currentSeed}\n采样步数: ${steps}\nCFG Scale: ${cfgScale}\n采样方法: ${sampler}\n噪声强度: ${noise}\n风格强度: ${styleStrength}\n提示词: ${basePrompt}`);
             };
 
             const loadingDiv = document.createElement('div');
