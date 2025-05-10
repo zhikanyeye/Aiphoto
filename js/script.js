@@ -1663,7 +1663,7 @@ function setupBingWallpaper() {
         width: 100%;
         height: 100%;
         z-index: -1;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(255, 255, 255, 0.7);
         pointer-events: none;
     `;
     document.body.appendChild(overlayDiv);
@@ -1675,85 +1675,41 @@ function setupBingWallpaper() {
     // 获取必应壁纸 - 使用更可靠的API
     async function fetchBingWallpapers() {
         try {
-            // 尝试多种API源获取必应壁纸
-            const sources = [
-                // 方法1: 使用bing.wdbyte.com API
-                async () => {
-                    const response = await fetch('https://bing.wdbyte.com/api/wallpaper/latest');
-                    if (!response.ok) throw new Error('bing.wdbyte.com API失败');
-                    const data = await response.json();
-                    
-                    if (data && data.data && Array.isArray(data.data)) {
-                        return data.data.map(item => ({
-                            url: item.url || item.urlbase,
-                            title: item.copyright || '必应壁纸',
-                            copyright: item.copyright || '© Bing',
-                            date: item.enddate || new Date().toISOString().split('T')[0]
-                        }));
-                    }
-                    throw new Error('数据格式不正确');
+            // 使用直接的必应图片URL，避免API调用失败
+            const bingImages = [
+                {
+                    url: "https://cn.bing.com/th?id=OHR.ProcidaItaly_ZH-CN1602837695_1920x1080.jpg",
+                    title: "普罗奇达岛，意大利",
+                    copyright: "© Sean Pavone/Shutterstock"
                 },
-                
-                // 方法2: 使用bing.npanuhin.me API
-                async () => {
-                    const response = await fetch('https://bing.npanuhin.me/ROW/en.json');
-                    if (!response.ok) throw new Error('bing.npanuhin.me API失败');
-                    const data = await response.json();
-                    
-                    if (data && Array.isArray(data) && data.length > 0) {
-                        // 获取最近的8张图片
-                        return data.slice(-8).map(item => ({
-                            url: item.url,
-                            title: item.title || '必应壁纸',
-                            copyright: item.copyright || '© Bing',
-                            date: item.date
-                        }));
-                    }
-                    throw new Error('数据格式不正确');
+                {
+                    url: "https://cn.bing.com/th?id=OHR.HedgehogNest_ZH-CN9272073392_1920x1080.jpg",
+                    title: "欧洲刺猬",
+                    copyright: "© Nicolas Reusens/Getty Images"
                 },
-                
-                // 方法3: 使用备用API (直接从必应获取，通过代理)
-                async () => {
-                    // 使用代理服务避免CORS问题
-                    const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                    const bingUrl = encodeURIComponent('https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=8');
-                    const response = await fetch(proxyUrl + bingUrl);
-                    
-                    if (!response.ok) throw new Error('代理API失败');
-                    const data = await response.json();
-                    
-                    if (data && data.images && Array.isArray(data.images)) {
-                        return data.images.map(image => ({
-                            url: 'https://www.bing.com' + image.url,
-                            title: image.title || '必应壁纸',
-                            copyright: image.copyright || '© Bing',
-                            date: image.startdate || new Date().toISOString().split('T')[0]
-                        }));
-                    }
-                    throw new Error('数据格式不正确');
+                {
+                    url: "https://cn.bing.com/th?id=OHR.ShanghaiBlossoms_ZH-CN9194175565_1920x1080.jpg",
+                    title: "上海的樱花",
+                    copyright: "© Yaorusheng/Getty Images"
+                },
+                {
+                    url: "https://cn.bing.com/th?id=OHR.QingmingCanola_ZH-CN8021236417_1920x1080.jpg",
+                    title: "清明节油菜花",
+                    copyright: "© Hanyu Qiu/Getty Images"
+                },
+                {
+                    url: "https://cn.bing.com/th?id=OHR.ArizonaPinkMoon_ZH-CN5545607389_1920x1080.jpg",
+                    title: "亚利桑那州的粉月",
+                    copyright: "© Cavan Images/Getty Images"
                 }
             ];
             
-            // 依次尝试不同的API源
-            for (const source of sources) {
-                try {
-                    const images = await source();
-                    if (images && images.length > 0) {
-                        // 清除旧缓存
-                        wallpaperCache.length = 0;
-                        // 添加新壁纸到缓存
-                        wallpaperCache.push(...images);
-                        // 设置第一张壁纸
-                        setWallpaper();
-                        return;
-                    }
-                } catch (sourceError) {
-                    console.warn('API源获取失败，尝试下一个源:', sourceError);
-                }
-            }
+            // 添加到缓存
+            wallpaperCache.length = 0;
+            wallpaperCache.push(...bingImages);
             
-            // 如果所有API源都失败，使用备用壁纸
-            throw new Error('所有API源都失败');
+            // 设置第一张壁纸
+            setWallpaper();
         } catch (error) {
             console.error('获取必应壁纸失败:', error);
             // 失败时使用备用壁纸
@@ -1766,34 +1722,29 @@ function setupBingWallpaper() {
         // 预定义的渐变背景作为备用
         const backupWallpapers = [
             {
-                url: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-                title: '深蓝渐变',
-                copyright: '备用壁纸',
-                date: new Date().toISOString().split('T')[0]
+                url: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                title: '淡蓝渐变',
+                copyright: '备用壁纸'
             },
             {
-                url: 'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)',
-                title: '海洋渐变',
-                copyright: '备用壁纸',
-                date: new Date().toISOString().split('T')[0]
+                url: 'linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%)',
+                title: '天空渐变',
+                copyright: '备用壁纸'
             },
             {
-                url: 'linear-gradient(135deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%)',
-                title: '日落渐变',
-                copyright: '备用壁纸',
-                date: new Date().toISOString().split('T')[0]
+                url: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8ef 100%)',
+                title: '云雾渐变',
+                copyright: '备用壁纸'
             },
             {
-                url: 'linear-gradient(135deg, #4b6cb7 0%, #182848 100%)',
-                title: '午夜蓝',
-                copyright: '备用壁纸',
-                date: new Date().toISOString().split('T')[0]
+                url: 'linear-gradient(135deg, #dfe9f3 0%, white 100%)',
+                title: '轻柔渐变',
+                copyright: '备用壁纸'
             },
             {
-                url: 'linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%)',
-                title: '紫罗兰',
-                copyright: '备用壁纸',
-                date: new Date().toISOString().split('T')[0]
+                url: 'linear-gradient(135deg, #f0f2f5 0%, #e0e6ed 100%)',
+                title: '淡灰渐变',
+                copyright: '备用壁纸'
             }
         ];
         
@@ -1915,14 +1866,7 @@ function setupBingWallpaper() {
     // 设置定时器，定期切换壁纸
     setInterval(() => {
         setWallpaper();
-    }, 30000); // 每30秒切换一次
-    
-    // 如果壁纸缓存用完，重新获取
-    setInterval(() => {
-        if (currentWallpaperIndex === 0) {
-            fetchBingWallpapers();
-        }
-    }, 3600000); // 每小时检查一次
+    }, 15000); // 每15秒切换一次
 }
 
 // 添加灵感项目
