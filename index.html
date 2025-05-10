@@ -1,23 +1,112 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="dark">
+<!-- 
+robots.txt content - 爬虫无法通过注释获取此内容，但可提示搜索引擎:
+User-agent: *
+Disallow: /
+Disallow: /api/*
+Disallow: /admin/*
+Allow: /index.html
+-->
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 安全相关头部标签 -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.tailwindcss.com https://api.niutrans.com https://image.pollinations.ai https://text.pollinations.ai; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' https://image.pollinations.ai data: blob:;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta name="referrer" content="no-referrer">
+    <!-- 添加安全相关元标签 -->
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, noarchive">
+    
     <title>AI艺术工坊 - 智能绘画生成器</title>
+    <!-- 添加更友好的指纹检测脚本 -->
+    <script>
+        // 简单的浏览器指纹收集，用于防止重复爬取，不影响正常用户
+        function generateFingerprint() {
+            const fingerData = [
+                navigator.userAgent,
+                navigator.language,
+                screen.colorDepth,
+                new Date().getTimezoneOffset(),
+                !!window.sessionStorage,
+                !!window.localStorage,
+                window.screen.width + "x" + window.screen.height
+            ].join('###');
+            
+            // 简单的哈希函数
+            let hash = 0;
+            for (let i = 0; i < fingerData.length; i++) {
+                hash = ((hash << 5) - hash) + fingerData.charCodeAt(i);
+                hash = hash & hash; // 转换为32位整数
+            }
+            
+            // 存储指纹
+            try {
+                localStorage.setItem('visitor_id', hash.toString());
+            } catch(e) {}
+            
+            // 检查访问频率 - 仅检测极端高频率，避免误判
+            const lastVisit = localStorage.getItem('last_visit') || 0;
+            const now = Date.now();
+            if (lastVisit > 0 && (now - lastVisit < 100)) { // 调整为更短的时间间隔
+                console.warn('检测到异常访问模式');
+                // 记录异常但不阻止用户
+            }
+            localStorage.setItem('last_visit', now.toString());
+        }
+        
+        // 页面加载时运行指纹检测
+        window.addEventListener('load', generateFingerprint);
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 修改后的防止复制和右键点击 - 仅针对敏感区域 -->
+    <script>
+        // 仅在特定情况下禁用右键菜单
+        document.addEventListener('contextmenu', function(e) {
+            // 如果是图片或代码区域，保留右键菜单功能
+            if (e.target.tagName === 'IMG' || 
+                e.target.id === 'prompt' || 
+                e.target.id === 'apiKeyInput') {
+                return true; // 允许默认行为
+            }
+            
+            // 按下Shift键时允许右键菜单（紧急情况使用）
+            if (e.shiftKey) return true;
+            
+            e.preventDefault();
+            return false;
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            // 仅禁用特定开发者工具组合键，允许常规复制粘贴
+            if (e.keyCode === 123) { // F12
+                e.preventDefault();
+                console.warn('F12键被禁用');
+                return false;
+            }
+            
+            // 允许复制粘贴，改善用户体验
+        });
+    </script>
     <style>
+        /* 移除全局禁用文本选择 */
         body {
             transition: all 0.3s ease;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        }
-        .light {
             background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
         }
+        
         .card {
-            background: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.85);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
         }
+        
         .preview {
             border: 2px dashed #4f46e5;
             border-radius: 1.5rem;
@@ -98,31 +187,90 @@
             width: 90%;
             max-width: 400px;
         }
+        
+        /* 提示文字样式增强 */
+        #promptHint {
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+            user-select: none;
+            z-index: 5;
+        }
+        
+        #promptHint span {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 必应壁纸信息样式 */
+        #wallpaperInfo {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            z-index: 10;
+            pointer-events: none;
+        }
+        #wallpaperInfo:hover {
+            opacity: 1;
+        }
+        
+        /* 参数提示工具提示样式 */
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            z-index: 100;
+            width: 250px;
+            top: -5px;
+            left: 25px;
+            font-size: 12px;
+            line-height: 1.4;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: -6px;
+            border-width: 6px 6px 6px 0;
+            border-style: solid;
+            border-color: transparent #333 transparent transparent;
+        }
+        
+        .param-help {
+            cursor: help;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
+    <!-- 添加壁纸信息显示区域 -->
+    <div id="wallpaperInfo"></div>
+    
     <div class="max-w-4xl mx-auto space-y-8">
-        <!-- 主题切换和API设置按钮 -->
-        <div class="flex justify-between mb-8">
-            <!-- API设置按钮 -->
+        <!-- API设置按钮 -->
+        <div class="flex justify-end mb-8">
             <button onclick="toggleApiSettings()" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
                 ⚙️ API设置
-            </button>
-            
-            <!-- 主题切换按钮 -->
-            <button onclick="toggleTheme()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
-                🌙 深色模式
             </button>
         </div>
         
         <!-- API设置面板 -->
-        <div id="apiSettings" class="settings-panel p-6 dark:bg-gray-800 dark:text-white hidden">
+        <div id="apiSettings" class="settings-panel p-6 hidden">
             <h3 class="text-xl font-bold mb-4">小牛翻译API设置</h3>
-            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+            <p class="text-sm text-gray-600 mb-4">
                 请输入您的小牛翻译API密钥。API密钥将安全地存储在您的浏览器中，不会上传到服务器。
             </p>
             <div class="mb-4">
-                <label for="apiKeyInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label for="apiKeyInput" class="block text-sm font-medium text-gray-700 mb-2">
                     API密钥
                 </label>
                 <input 
@@ -150,7 +298,7 @@
         
         <!-- 主内容 -->
         <div class="card p-6">
-            <h1 class="text-4xl font-bold text-center text-gray-800 dark:text-white mb-8">
+            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">
                 AI艺术工坊
                 <span class="text-2xl text-blue-600">v2.4</span>
             </h1>
@@ -163,35 +311,63 @@
                         <textarea
                             id="prompt"
                             placeholder="描述你想要生成的图片内容..."
-                            class="w-full p-4 text-lg rounded-lg focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 h-24 resize-none"
+                            class="w-full p-4 text-lg rounded-lg focus:ring-4 focus:ring-blue-300 h-24 resize-none"
                             onkeydown="handleKeyPress(event)"
                         ></textarea>
-                        <div class="absolute right-3 top-3">
-                            <span class="text-sm text-gray-500">按Ctrl+Enter快速生成</span>
+                        <div class="absolute right-3 top-3 transition-opacity duration-300" id="promptHint">
+                            <span class="text-sm font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded-md">按Enter快速生成</span>
                         </div>
                     </div>
-                    <div id="apiStatusMessage" class="text-sm text-gray-500 dark:text-gray-400 mt-1 h-5"></div>
+                    <div id="apiStatusMessage" class="text-sm text-gray-500 mt-1 h-5"></div>
+
+                    <!-- AI提示词优化按钮 -->
+                    <div class="mb-3">
+                        <button 
+                            onclick="aiEnhancePrompt()"
+                            class="px-3 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700 text-sm flex items-center"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            一键AI优化提示词 (Llama 3.3 70B)
+                        </button>
+                    </div>
 
                     <!-- 质量标签 -->
                     <div class="space-y-2">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                            图片质量增强（建议选择2-3个）
+                        <label class="block text-sm font-medium text-gray-700">
+                            画质增强标签（点击选择，建议2-3个）
                         </label>
                         <div id="qualityTags" class="flex flex-wrap gap-2">
-                            <span class="quality-tag" onclick="toggleTag(this)" data-en="masterpiece">完美作品</span>
-                            <span class="quality-tag" onclick="toggleTag(this)" data-en="best quality">最佳品质</span>
-                            <span class="quality-tag" onclick="toggleTag(this)" data-en="ultra detailed">超细节</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="masterpiece">艺术杰作</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="best quality">最佳质量</span>
                             <span class="quality-tag active" onclick="toggleTag(this)" data-en="high resolution">高分辨率</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="ultra detailed">超精细细节</span>
                             <span class="quality-tag" onclick="toggleTag(this)" data-en="8k uhd">8K超高清</span>
-                            <span class="quality-tag" onclick="toggleTag(this)" data-en="professional lighting">专业打光</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="professional lighting">专业光效</span>
                             <span class="quality-tag" onclick="toggleTag(this)" data-en="cinematic lighting">电影光效</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="dramatic lighting">戏剧光效</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="studio lighting">工作室光效</span>
+                            <span class="quality-tag" onclick="toggleTag(this)" data-en="soft lighting">柔和光效</span>
                         </div>
+                    </div>
+
+                    <!-- 负面提示词 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            负面提示词（告诉AI不要生成什么）
+                        </label>
+                        <textarea
+                            id="negativePrompt"
+                            placeholder="例如：模糊, 变形, 低质量..."
+                            class="w-full p-2 text-sm rounded-lg h-12 resize-none"
+                        >低质量, 模糊, 变形, 扭曲, 低分辨率, 草图, 不完整, 水印</textarea>
                     </div>
 
                     <!-- 参数设置 -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
                                 图片尺寸 (分辨率)
                             </label>
                             <select id="aspectRatio" class="p-3 rounded-lg w-full">
@@ -203,7 +379,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
                                 生成数量
                             </label>
                             <select id="generateCount" class="p-3 rounded-lg w-full">
@@ -211,6 +387,104 @@
                                 <option value="2">生成 2 张</option>
                                 <option value="4">生成 4 张</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <!-- 高级参数设置 -->
+                    <div class="mb-4 p-4 bg-gray-100 rounded-lg">
+                        <h3 class="text-lg font-medium mb-3">高级参数设置</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="relative">
+                                <div class="flex items-center">
+                                    <label class="block text-sm font-medium mb-1 text-gray-700">采样步数</label>
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="采样步数决定AI生成图像的精细程度。步数越高，图像细节越丰富，但生成时间也越长。推荐值：30-70。">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                    <div class="tooltip hidden">采样步数决定AI生成图像的精细程度。步数越高，图像细节越丰富，但生成时间也越长。推荐值：30-70。</div>
+                                </div>
+                                <input type="range" id="steps" min="20" max="150" value="50" 
+                                    class="w-full" onchange="updateStepsValue(this.value)">
+                                <span id="stepsValue" class="text-sm">50</span>
+                            </div>
+                            
+                            <div class="relative">
+                                <div class="flex items-center">
+                                    <label class="block text-sm font-medium mb-1 text-gray-700">CFG Scale</label>
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="CFG Scale控制AI对提示词的遵循程度。值越高，图像越符合提示词描述，但创意性可能降低；值越低，创意性越强但可能偏离提示词。推荐值：7-9。">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                    <div class="tooltip hidden">CFG Scale控制AI对提示词的遵循程度。值越高，图像越符合提示词描述，但创意性可能降低；值越低，创意性越强但可能偏离提示词。推荐值：7-9。</div>
+                                </div>
+                                <input type="range" id="cfgScale" min="1" max="20" value="7" step="0.5"
+                                    class="w-full" onchange="updateCfgValue(this.value)">
+                                <span id="cfgValue" class="text-sm">7</span>
+                            </div>
+                            
+                            <div class="relative">
+                                <div class="flex items-center">
+                                    <label class="block text-sm font-medium mb-1 text-gray-700">随机种子</label>
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="种子值决定图像的初始随机状态。使用相同的种子值和参数可以生成相似的图像。留空则每次生成随机种子。记录喜欢的图像的种子值可以帮助您重现类似效果。">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                    <div class="tooltip hidden">种子值决定图像的初始随机状态。使用相同的种子值和参数可以生成相似的图像。留空则每次生成随机种子。记录喜欢的图像的种子值可以帮助您重现类似效果。</div>
+                                </div>
+                                <input type="number" id="seed" class="w-full px-2 py-1 rounded border"
+                                    placeholder="留空则随机">
+                            </div>
+                            
+                            <div class="relative">
+                                <div class="flex items-center">
+                                    <label class="block text-sm font-medium mb-1 text-gray-700">采样方法</label>
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="不同的采样方法会产生不同风格的图像。Euler a适合创意性强的图像；DDIM生成更稳定可控的结果；DPM++生成细节丰富的高质量图像。">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                    <div class="tooltip hidden">不同的采样方法会产生不同风格的图像。Euler a适合创意性强的图像；DDIM生成更稳定可控的结果；DPM++生成细节丰富的高质量图像。</div>
+                                </div>
+                                <select id="sampler" class="w-full px-2 py-1 rounded border">
+                                    <option value="euler_a">Euler a (创意性强)</option>
+                                    <option value="ddim">DDIM (稳定可控)</option>
+                                    <option value="dpm++">DPM++ (细节丰富)</option>
+                                    <option value="k_lms">k_LMS (平衡型)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="relative">
+                                <div class="flex items-center">
+                                    <label class="block text-sm font-medium mb-1 text-gray-700">噪声强度</label>
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="噪声强度影响图像的随机性和纹理。较高的值会产生更多的纹理细节和随机性，较低的值则产生更平滑的结果。">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                    <div class="tooltip hidden">噪声强度影响图像的随机性和纹理。较高的值会产生更多的纹理细节和随机性，较低的值则产生更平滑的结果。</div>
+                                </div>
+                                <input type="range" id="noise" min="0" max="1" value="0.2" step="0.05"
+                                    class="w-full" onchange="updateNoiseValue(this.value)">
+                                <span id="noiseValue" class="text-sm">0.2</span>
+                            </div>
+                            
+                            <div class="relative">
+                                <div class="flex items-center">
+                                    <label class="block text-sm font-medium mb-1 text-gray-700">风格强度</label>
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="风格强度控制AI应用艺术风格的程度。较高的值会使风格特征更明显，较低的值则更接近写实。">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                    <div class="tooltip hidden">风格强度控制AI应用艺术风格的程度。较高的值会使风格特征更明显，较低的值则更接近写实。</div>
+                                </div>
+                                <input type="range" id="styleStrength" min="0" max="1" value="0.6" step="0.05"
+                                    class="w-full" onchange="updateStyleValue(this.value)">
+                                <span id="styleValue" class="text-sm">0.6</span>
+                            </div>
                         </div>
                     </div>
 
@@ -227,7 +501,7 @@
                 </div>
 
                 <!-- 右侧灵感库 -->
-                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 h-fit">
+                <div class="bg-gray-50 rounded-lg p-4 h-fit">
                     <h3 class="font-semibold mb-4 text-lg">✨ 灵感库</h3>
                     <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2" id="inspirationList">
                         <!-- 灵感列表由JavaScript动态生成 -->
@@ -245,5 +519,53 @@
     </div>
 
     <script src="script.js" defer></script>
+    
+    <!-- 添加反爬虫蜜罐链接和混淆元素 -->
+    <div style="display:none">
+        <a href="/admin" rel="nofollow">Admin Panel</a>
+        <a href="/login" rel="nofollow">Login</a>
+        <a href="/sitemap.xml" rel="nofollow">Sitemap</a>
+        <a href="/crawler-trap" rel="nofollow">Do Not Follow</a>
+    </div>
+    
+    <!-- 添加混淆标签使爬虫难以识别关键内容 -->
+    <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;" class="crawler-trap">
+        <span data-value="image-generator">关键词图像生成器</span>
+        <span data-value="api-key">密钥设置</span>
+        <span data-value="prompt-input">提示词输入</span>
+    </div>
+    
+    <!-- 简单的反爬虫检测脚本 -->
+    <script>
+        // 检测自动化工具和爬虫
+        (function() {
+            // 检测Navigator属性 - 很多爬虫会缺少某些属性
+            if (!navigator.languages || navigator.languages.length === 0) {
+                blockAccess("检测到可能的爬虫行为");
+            }
+            
+            // 检测鼠标移动 - 通常爬虫不会有鼠标行为
+            let mouseMoved = false;
+            document.addEventListener('mousemove', function() {
+                mouseMoved = true;
+            });
+            
+            // 几秒后检测是否有鼠标移动
+            setTimeout(function() {
+                if (!mouseMoved) {
+                    // 不要立即阻止，只是记录可疑行为
+                    console.warn("可能的自动化访问 - 无鼠标移动");
+                }
+            }, 5000);
+            
+            // 阻止访问的函数
+            function blockAccess(reason) {
+                document.body.innerHTML = `<div style="text-align:center;padding:50px;">
+                    <h1>访问受限</h1>
+                    <p>${reason}</p>
+                </div>`;
+            }
+        })();
+    </script>
 </body>
 </html>
