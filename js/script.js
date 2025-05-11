@@ -1451,20 +1451,25 @@ function skipApiSetup() {
     // 隐藏API设置按钮
     hideApiButton();
     
-    // 显示已跳过API设置的通知
+    // 显示已跳过API设置的通知，并提示如何再次显示设置按钮
     const statusContainer = document.createElement('div');
     statusContainer.className = 'fixed bottom-4 right-4 p-3 rounded-lg bg-gray-700 text-white text-sm z-50 opacity-80';
-    statusContainer.textContent = '已跳过API设置，将使用原始提示词';
+    statusContainer.innerHTML = `
+        已跳过API设置，将使用原始提示词
+        <div class="text-xs mt-1 text-gray-300">
+            提示：需要重新设置API时，请连续点击3次网站标题
+        </div>
+    `;
     document.body.appendChild(statusContainer);
     
-    // 3秒后自动淡出
+    // 5秒后自动淡出
     setTimeout(() => {
         statusContainer.style.transition = 'opacity 1s ease';
         statusContainer.style.opacity = '0';
         setTimeout(() => {
             document.body.removeChild(statusContainer);
         }, 1000);
-    }, 3000);
+    }, 5000);
 }
 
 // 隐藏API设置按钮
@@ -1561,17 +1566,22 @@ function setupTitleClickHandler() {
 function showApiConfiguredNotification() {
     const statusContainer = document.createElement('div');
     statusContainer.className = 'fixed bottom-4 right-4 p-3 rounded-lg bg-green-700 text-white text-sm z-50 opacity-80';
-    statusContainer.textContent = '✅ 翻译API已配置，设置按钮已隐藏';
+    statusContainer.innerHTML = `
+        ✅ 翻译API已配置，设置按钮已隐藏
+        <div class="text-xs mt-1 text-gray-300">
+            提示：需要重新设置API时，请连续点击3次网站标题
+        </div>
+    `;
     document.body.appendChild(statusContainer);
     
-    // 3秒后自动淡出
+    // 5秒后自动淡出
     setTimeout(() => {
         statusContainer.style.transition = 'opacity 1s ease';
         statusContainer.style.opacity = '0';
         setTimeout(() => {
             document.body.removeChild(statusContainer);
         }, 1000);
-    }, 3000);
+    }, 5000);
 }
 
 // 添加清除API密钥的函数
