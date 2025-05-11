@@ -1033,12 +1033,58 @@ let lastGenerationParams = {
     steps: 50,
     cfgScale: 7,
     negativePrompt: '',
+    translatedNegativePrompt: '',
     seed: '',
     sampler: 'euler_a',
     noise: 0.2,
     styleStrength: 0.6,
     qualityTags: []
 };
+
+// 添加一个函数来判断文本是否为中文
+function containsChinese(text) {
+    return /[\u4e00-\u9fa5]/.test(text);
+}
+
+// 添加一个函数来处理负面描述词的翻译
+async function translateNegativePrompt(negativePrompt) {
+    if (!negativePrompt) return '';
+    
+    // 将负面提示词按逗号分隔
+    const negTerms = negativePrompt.split(',').map(term => term.trim()).filter(term => term);
+    
+    // 分离中文和非中文词汇
+    const chineseTerms = negTerms.filter(term => containsChinese(term));
+    const nonChineseTerms = negTerms.filter(term => !containsChinese(term));
+    
+    // 如果没有中文词汇，直接返回原始负面提示词
+    if (chineseTerms.length === 0) {
+        return negativePrompt;
+    }
+    
+    // 翻译中文词汇
+    let translatedChineseTerms = [];
+    try {
+        // 将所有中文词汇合并为一个字符串进行翻译，以减少API调用
+        const combinedChineseTerms = chineseTerms.join(', ');
+        const translatedText = await translateWithNiutrans(combinedChineseTerms);
+        
+        // 如果翻译成功，分割结果
+        if (translatedText !== combinedChineseTerms) {
+            translatedChineseTerms = translatedText.split(',').map(term => term.trim()).filter(term => term);
+        } else {
+            // 如果翻译失败，使用原始中文词汇
+            translatedChineseTerms = chineseTerms;
+        }
+    } catch (error) {
+        console.error('翻译负面提示词时出错:', error);
+        translatedChineseTerms = chineseTerms;
+    }
+    
+    // 合并翻译后的中文词汇和原始非中文词汇
+    const allTerms = [...translatedChineseTerms, ...nonChineseTerms];
+    return allTerms.join(', ');
+}
 
 // 修改generateImage函数，优化图片加载和预览功能
 async function generateImage() {
@@ -1138,6 +1184,25 @@ async function generateImage() {
         apiStatusMessage.textContent = '使用相同描述词，仅更新参数';
     }
 
+    // 处理负面提示词翻译
+    let translatedNegativePrompt = negativePrompt;
+    if (negativePrompt && containsChinese(negativePrompt)) {
+        apiStatusMessage.textContent = '正在翻译负面提示词...';
+        translatedNegativePrompt = await translateNegativePrompt(negativePrompt);
+        if (translatedNegativePrompt !== negativePrompt) {
+            apiStatusMessage.textContent = '负面提示词翻译成功！';
+        }
+        // 缓存翻译后的负面提示词
+        lastGenerationParams.translatedNegativePrompt = translatedNegativePrompt;
+    } else if (negativePrompt) {
+        // 如果没有中文，直接使用原始负面提示词
+        translatedNegativePrompt = negativePrompt;
+        lastGenerationParams.translatedNegativePrompt = translatedNegativePrompt;
+    } else {
+        // 如果没有负面提示词，清除缓存
+        lastGenerationParams.translatedNegativePrompt = '';
+    }
+
     setTimeout(() => {
         if (apiStatusMessage.textContent.includes('翻译') || 
             apiStatusMessage.textContent.includes('匹配') ||
@@ -1169,8 +1234,8 @@ async function generateImage() {
             // 添加新的参数
             url += `&sampler=${sampler}&noise_strength=${noise}&style_strength=${styleStrength}`;
             
-            if (negativePrompt) {
-                url += `&negative_prompt=${encodeURIComponent(negativePrompt)}`;
+            if (translatedNegativePrompt) {
+                url += `&negative_prompt=${encodeURIComponent(translatedNegativePrompt)}`;
             }
             
             const previewDiv = document.createElement('div');
