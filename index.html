@@ -98,8 +98,8 @@ Allow: /index.html
     
     <div class="max-w-4xl mx-auto space-y-8">
         <!-- API设置按钮 -->
-        <div class="flex justify-end mb-8">
-            <button onclick="toggleApiSettings()" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
+        <div class="flex justify-end mb-8" id="apiButtonContainer">
+            <button onclick="toggleApiSettings()" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700" id="apiSettingsButton">
                 ⚙️ API设置
             </button>
         </div>
@@ -127,8 +127,8 @@ Allow: /index.html
                     🗑️ 清除密钥
                 </button>
                 <div>
-                    <button onclick="document.getElementById('apiSettings').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-gray-300 text-gray-800 hover:bg-gray-400 mr-2">
-                        取消
+                    <button onclick="skipApiSetup()" class="px-4 py-2 rounded-lg bg-gray-500 text-white hover:bg-gray-600 mr-2">
+                        不设置API
                     </button>
                     <button onclick="saveApiKey()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
                         保存
@@ -139,7 +139,7 @@ Allow: /index.html
         
         <!-- 主内容 -->
         <div class="card p-6">
-            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">
+            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8" id="siteTitle">
                 AI艺术工坊
                 <span class="text-2xl text-blue-600">v2.4</span>
             </h1>

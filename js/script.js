@@ -108,6 +108,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // 检查API密钥是否已配置
     checkApiKeyStatus();
     
+    // 初始化API设置按钮状态
+    initializeApiButtonState();
+    
+    // 设置网站标题点击事件
+    setupTitleClickHandler();
+    
     // 添加提示文字渐隐效果
     const promptHint = document.getElementById('promptHint');
     const promptTextarea = document.getElementById('prompt');
@@ -1425,15 +1431,153 @@ function saveApiKey() {
         setTimeout(() => {
             document.getElementById('apiKeyStatus').textContent = '';
             document.getElementById('apiSettings').classList.add('hidden');
+            
+            // 隐藏API设置按钮
+            hideApiButton();
+            
+            // 显示API已配置的通知
+            showApiConfiguredNotification();
         }, 2000);
     } else {
         document.getElementById('apiKeyStatus').textContent = '❌ 请输入有效的API密钥';
     }
 }
 
+// 添加跳过API设置的函数
+function skipApiSetup() {
+    localStorage.setItem('apiSetupSkipped', 'true');
+    document.getElementById('apiSettings').classList.add('hidden');
+    
+    // 隐藏API设置按钮
+    hideApiButton();
+    
+    // 显示已跳过API设置的通知
+    const statusContainer = document.createElement('div');
+    statusContainer.className = 'fixed bottom-4 right-4 p-3 rounded-lg bg-gray-700 text-white text-sm z-50 opacity-80';
+    statusContainer.textContent = '已跳过API设置，将使用原始提示词';
+    document.body.appendChild(statusContainer);
+    
+    // 3秒后自动淡出
+    setTimeout(() => {
+        statusContainer.style.transition = 'opacity 1s ease';
+        statusContainer.style.opacity = '0';
+        setTimeout(() => {
+            document.body.removeChild(statusContainer);
+        }, 1000);
+    }, 3000);
+}
+
+// 隐藏API设置按钮
+function hideApiButton() {
+    const apiButtonContainer = document.getElementById('apiButtonContainer');
+    if (apiButtonContainer) {
+        apiButtonContainer.style.transition = 'opacity 0.5s ease, height 0.5s ease, margin 0.5s ease';
+        apiButtonContainer.style.opacity = '0';
+        apiButtonContainer.style.height = '0';
+        apiButtonContainer.style.margin = '0';
+        apiButtonContainer.style.overflow = 'hidden';
+        
+        // 标记API按钮已隐藏
+        localStorage.setItem('apiButtonHidden', 'true');
+    }
+}
+
+// 显示API设置按钮
+function showApiButton() {
+    const apiButtonContainer = document.getElementById('apiButtonContainer');
+    if (apiButtonContainer) {
+        apiButtonContainer.style.transition = 'opacity 0.5s ease, height 0.5s ease, margin 0.5s ease';
+        apiButtonContainer.style.opacity = '1';
+        apiButtonContainer.style.height = 'auto';
+        apiButtonContainer.style.margin = '0 0 2rem 0';
+        apiButtonContainer.style.overflow = 'visible';
+        
+        // 标记API按钮已显示
+        localStorage.setItem('apiButtonHidden', 'false');
+    }
+}
+
+// 初始化API按钮状态
+function initializeApiButtonState() {
+    // 如果用户已经设置了API或选择了跳过，则隐藏按钮
+    const apiKey = localStorage.getItem('niutransApiKey');
+    const apiSetupSkipped = localStorage.getItem('apiSetupSkipped') === 'true';
+    const apiButtonHidden = localStorage.getItem('apiButtonHidden') === 'true';
+    
+    if ((apiKey || apiSetupSkipped) && apiButtonHidden) {
+        hideApiButton();
+    }
+}
+
+// 设置网站标题点击处理程序
+function setupTitleClickHandler() {
+    const siteTitle = document.getElementById('siteTitle');
+    if (!siteTitle) return;
+    
+    let clickCount = 0;
+    let lastClickTime = 0;
+    
+    siteTitle.addEventListener('click', () => {
+        const currentTime = new Date().getTime();
+        
+        // 如果距离上次点击超过2秒，重置计数
+        if (currentTime - lastClickTime > 2000) {
+            clickCount = 0;
+        }
+        
+        clickCount++;
+        lastClickTime = currentTime;
+        
+        // 显示点击反馈
+        siteTitle.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            siteTitle.style.transform = 'scale(1)';
+        }, 100);
+        
+        // 如果点击了3次，显示API设置按钮
+        if (clickCount >= 3) {
+            clickCount = 0;
+            showApiButton();
+            
+            // 显示提示
+            const hint = document.createElement('div');
+            hint.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            hint.textContent = 'API设置按钮已显示';
+            hint.style.transition = 'opacity 0.5s ease';
+            document.body.appendChild(hint);
+            
+            // 2秒后淡出
+            setTimeout(() => {
+                hint.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(hint);
+                }, 500);
+            }, 2000);
+        }
+    });
+}
+
+// 显示API已配置的通知
+function showApiConfiguredNotification() {
+    const statusContainer = document.createElement('div');
+    statusContainer.className = 'fixed bottom-4 right-4 p-3 rounded-lg bg-green-700 text-white text-sm z-50 opacity-80';
+    statusContainer.textContent = '✅ 翻译API已配置，设置按钮已隐藏';
+    document.body.appendChild(statusContainer);
+    
+    // 3秒后自动淡出
+    setTimeout(() => {
+        statusContainer.style.transition = 'opacity 1s ease';
+        statusContainer.style.opacity = '0';
+        setTimeout(() => {
+            document.body.removeChild(statusContainer);
+        }, 1000);
+    }, 3000);
+}
+
 // 添加清除API密钥的函数
 function clearApiKey() {
     localStorage.removeItem('niutransApiKey');
+    localStorage.removeItem('apiSetupSkipped');
     document.getElementById('apiKeyInput').value = '';
     document.getElementById('apiKeyStatus').textContent = '✅ API密钥已清除';
     
@@ -1458,31 +1602,30 @@ function toggleApiSettings() {
 // 检查API密钥状态并在界面显示
 function checkApiKeyStatus() {
     const apiKey = localStorage.getItem('niutransApiKey');
-    const statusContainer = document.createElement('div');
-    statusContainer.className = 'fixed bottom-4 right-4 p-3 rounded-lg bg-gray-800 text-white text-sm z-50 opacity-80';
+    const apiSetupSkipped = localStorage.getItem('apiSetupSkipped') === 'true';
+    const apiButtonHidden = localStorage.getItem('apiButtonHidden') === 'true';
     
-    if (apiKey) {
-        statusContainer.textContent = '✅ 翻译API已配置';
-        statusContainer.classList.add('bg-green-700');
-    } else {
-        statusContainer.textContent = '⚠️ 翻译API未配置，将使用原始提示词';
-        statusContainer.classList.add('bg-yellow-700');
+    // 更新API状态消息
+    const apiStatusMessage = document.getElementById('apiStatusMessage');
+    if (apiStatusMessage) {
+        if (apiKey) {
+            apiStatusMessage.textContent = '✅ 翻译API已配置';
+            apiStatusMessage.className = 'text-sm text-green-600 mt-1 h-5';
+        } else if (apiSetupSkipped) {
+            apiStatusMessage.textContent = '⚠️ 使用原始提示词（未配置API）';
+            apiStatusMessage.className = 'text-sm text-yellow-600 mt-1 h-5';
+        } else {
+            apiStatusMessage.textContent = '';
+        }
     }
     
-    // 点击状态图标打开设置面板
-    statusContainer.style.cursor = 'pointer';
-    statusContainer.onclick = toggleApiSettings;
-    
-    document.body.appendChild(statusContainer);
-    
-    // 3秒后自动淡出
-    setTimeout(() => {
-        statusContainer.style.transition = 'opacity 1s ease';
-        statusContainer.style.opacity = '0';
+    // 如果既没有API密钥也没有跳过设置，且按钮未被隐藏，显示API设置面板
+    if (!apiKey && !apiSetupSkipped && !apiButtonHidden) {
+        // 延迟显示设置面板，让页面先加载完成
         setTimeout(() => {
-            document.body.removeChild(statusContainer);
+            toggleApiSettings();
         }, 1000);
-    }, 3000);
+    }
 }
 
 // 在最底部添加以下代码 - 修改后的更友好版本
