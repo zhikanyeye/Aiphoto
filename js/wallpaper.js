@@ -7,7 +7,10 @@ document.addEventListener('DOMContentLoaded', function() {
         'https://img.lansq.xyz/file/0FcT7Jdr.png',
         'https://img.lansq.xyz/file/rjgv2LfR.jpg',
         'https://img.lansq.xyz/file/XmweO4U8.jpg',
-        'https://img.lansq.xyz/file/PVScO4o7.jpg'
+        'https://img.lansq.xyz/file/PVScO4o7.jpg',
+        'https://img.lansq.xyz/file/Y5bnBkeW.png',
+        'https://img.lansq.xyz/file/D7senj8B.png',
+        'https://img.lansq.xyz/file/kqMPnBfQ.png'
     ];
 
     // 桌面设备壁纸列表
@@ -22,7 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
         'https://img.lansq.xyz/file/covers/NjtorIGe.jpg',
         'https://img.lansq.xyz/file/covers/ASJNEvQY.png',
         'https://img.lansq.xyz/file/covers/0ty2ARS2.jpeg',
-        'https://img.lansq.xyz/file/covers/xOtzZs3I.jpg'
+        'https://img.lansq.xyz/file/covers/xOtzZs3I.jpg',
+        'https://img.lansq.xyz/file/h8VNeAFA.png',
+        'https://img.lansq.xyz/file/uBN68PlF.png',
+        'https://img.lansq.xyz/file/a02teLLs.png'
     ];
 
     // 预加载所有壁纸图片
