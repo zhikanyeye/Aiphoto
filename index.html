@@ -12,7 +12,7 @@ Allow: /index.html
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- 安全相关头部标签 -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.tailwindcss.com https://api.niutrans.com https://image.pollinations.ai https://text.pollinations.ai; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' https://image.pollinations.ai data: blob:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.tailwindcss.com https://api.niutrans.com https://image.pollinations.ai https://text.pollinations.ai https://img.lansq.xyz; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' https://image.pollinations.ai https://img.lansq.xyz data: blob:;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta name="referrer" content="no-referrer">
@@ -92,6 +92,38 @@ Allow: /index.html
             // 允许复制粘贴，改善用户体验
         });
     </script>
+    <style>
+        /* 添加适应背景壁纸的样式 */
+        body {
+            background-color: transparent !important;
+        }
+        
+        .card {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .settings-panel {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 优化输入框和按钮样式 */
+        textarea, input, select {
+            background-color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        /* 优化灵感库样式 */
+        .bg-gray-50 {
+            background-color: rgba(249, 250, 251, 0.8) !important;
+        }
+    </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
     <!-- 壁纸信息显示区域已移除 -->
@@ -347,6 +379,7 @@ Allow: /index.html
     </div>
 
     <script src="js/script.js" defer></script>
+    <script src="js/wallpaper.js" defer></script>
     
     <!-- 添加反爬虫蜜罐链接和混淆元素 -->
     <div style="display:none">
