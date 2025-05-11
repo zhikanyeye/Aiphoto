@@ -107,5 +107,4 @@ AI艺术工坊 - 智能绘画生成器
 - 使用Llama 3.3 70B模型进行提示词优化
 
 ## 在线体验
-- GitHub Pages访问：https://zhikanyeye.github.io/Aiphoto/
 - 在线体验网站：https://qiyimg.3d.tc/Aiphoto/
