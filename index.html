@@ -125,6 +125,26 @@ Allow: /index.html
         .bg-gray-50 {
             background-color: rgba(249, 250, 251, 0.8) !important;
         }
+        
+        /* 响应式标题样式 */
+        @media (max-width: 640px) {
+            #siteTitle {
+                font-size: 1.5rem;
+                line-height: 2rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: nowrap;
+            }
+            
+            #siteTitle img {
+                margin-right: 0.5rem;
+            }
+            
+            #siteTitle .version {
+                margin-left: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
@@ -173,10 +193,10 @@ Allow: /index.html
         
         <!-- 主内容 -->
         <div class="card p-6">
-            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8" id="siteTitle">
-                <img src="img/logo.svg" alt="AI艺术工坊" class="inline-block h-12 w-12 mr-2 align-middle">
-                AI艺术工坊
-                <span class="text-2xl text-blue-600">v3.0</span>
+            <h1 class="text-4xl md:text-4xl text-2xl font-bold text-center text-gray-800 mb-8" id="siteTitle">
+                <img src="img/logo.svg" alt="AI艺术工坊" class="inline-block h-8 w-8 md:h-12 md:w-12 mr-1 md:mr-2 align-middle">
+                <span class="align-middle">AI艺术工坊</span>
+                <span class="text-xl md:text-2xl text-blue-600 version">v3.0</span>
             </h1>
             
             <!-- 输入区域和灵感库并排布局 -->
