@@ -167,9 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 添加提示词优化器
     addPromptEnhancer();
     
-    // 添加AI提示词优化按钮 (Pollinations.ai)
-    addAIEnhancementButton();
-    
     // 添加公告弹窗
     const announcement = document.createElement('div');
     announcement.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 md:p-6 rounded-lg shadow-2xl z-50 max-w-md w-[90%] md:w-full mx-auto animate-fade-in';
@@ -431,8 +428,8 @@ function addPromptEnhancer() {
     // 创建提示词优化器按钮
     const promptInput = document.getElementById('prompt');
     const enhancerBtn = document.createElement('button');
-    enhancerBtn.className = 'absolute left-3 bottom-3 bg-green-500 text-white px-2 py-1 rounded text-sm hover:bg-green-600';
-    enhancerBtn.textContent = '✨ 优化助手';
+    enhancerBtn.className = 'absolute left-3 bottom-3 bg-purple-600 text-white px-2 py-1 rounded text-sm hover:bg-purple-700';
+    enhancerBtn.textContent = '🤖 AI助手优化';
     enhancerBtn.onclick = showPromptEnhancer;
     
     // 将按钮添加到输入框容器
@@ -458,7 +455,7 @@ window.showPromptEnhancer = function() {
     
     // 面板内容
     enhancerPanel.innerHTML = `
-        <h3 class="text-xl font-bold mb-4">提示词优化助手</h3>
+        <h3 class="text-xl font-bold mb-4">AI助手优化</h3>
         <div class="mb-4">
             <p class="text-sm text-gray-600 mb-2">当前提示词分析:</p>
             <p class="px-3 py-2 bg-gray-100 rounded text-gray-800">${currentPrompt}</p>
@@ -523,7 +520,7 @@ window.showPromptEnhancer = function() {
         </div>
         
         <div class="flex justify-between mt-4">
-            <button onclick="useAIOptimization()" 
+            <button onclick="aiEnhancePrompt(); document.getElementById('promptEnhancerPanel').remove();" 
                     class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">
                 🤖 一键AI优化
             </button>
@@ -825,15 +822,8 @@ window.useEnhancedPrompt = function(encodedPrompt) {
 
 // 添加AI优化按钮
 function addAIEnhancementButton() {
-    // 创建AI提示词优化按钮
-    const promptInput = document.getElementById('prompt');
-    const aiEnhanceBtn = document.createElement('button');
-    aiEnhanceBtn.className = 'absolute right-3 bottom-3 bg-purple-600 text-white px-2 py-1 rounded text-sm hover:bg-purple-700';
-    aiEnhanceBtn.textContent = '🤖 AI优化';
-    aiEnhanceBtn.onclick = aiEnhancePrompt;
-    
-    // 将按钮添加到输入框容器
-    promptInput.parentElement.appendChild(aiEnhanceBtn);
+    // 这个函数不再需要，因为我们已经合并了按钮
+    // 保留空函数以避免潜在的引用错误
 }
 
 // 添加图片生成参数控制面板
