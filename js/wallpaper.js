@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 height: 100%;
                 background-size: cover;
                 background-position: center;
+                background-repeat: no-repeat;
                 transition: opacity 1.5s ease, filter 1.5s ease;
                 opacity: ${i === 0 ? '1' : '0'};
             `;
@@ -96,6 +97,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // 设置初始壁纸
         wallpaperLayers[0].style.backgroundImage = `url('${wallpapers[0]}')`;
         
+        // 确保壁纸铺满屏幕
+        ensureFullCoverage(wallpaperLayers[0]);
+        
         // 壁纸切换函数
         function changeWallpaper() {
             // 获取下一个壁纸索引
@@ -109,6 +113,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // 设置下一层的背景
             nextLayer.style.backgroundImage = `url('${wallpapers[currentWallpaperIndex]}')`;
             
+            // 确保壁纸铺满屏幕
+            ensureFullCoverage(nextLayer);
+            
             // 添加模糊玻璃切换动画
             currentLayer.style.filter = 'blur(15px)';
             nextLayer.style.filter = 'blur(0px)';
@@ -119,6 +126,38 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 更新当前层索引
             currentLayerIndex = nextLayerIndex;
+        }
+        
+        // 确保壁纸铺满屏幕的函数
+        function ensureFullCoverage(layer) {
+            // 设置背景尺寸为cover，确保铺满
+            layer.style.backgroundSize = 'cover';
+            
+            // 针对移动设备做额外优化
+            if (isMobileDevice()) {
+                // 在移动设备上，有些图片可能需要调整位置以更好地展示
+                const img = new Image();
+                img.onload = function() {
+                    // 如果图片比例与屏幕比例不匹配，调整背景位置
+                    const imgRatio = this.width / this.height;
+                    const screenRatio = window.innerWidth / window.innerHeight;
+                    
+                    if (imgRatio > screenRatio) {
+                        // 图片更宽，居中显示
+                        layer.style.backgroundPosition = 'center center';
+                    } else {
+                        // 图片更高，可能需要调整到顶部
+                        layer.style.backgroundPosition = 'center top';
+                    }
+                };
+                img.src = layer.style.backgroundImage.replace(/url\(['"]?(.*?)['"]?\)/i, '$1');
+            } else {
+                // 桌面设备默认居中
+                layer.style.backgroundPosition = 'center center';
+            }
+            
+            // 添加额外的样式确保完全覆盖
+            layer.style.backgroundAttachment = 'fixed'; // 固定背景，防止滚动
         }
         
         // 设置定时器，每30秒切换一次壁纸
@@ -140,9 +179,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 wallpaperLayers[currentLayerIndex].style.filter = 'blur(0px)';
                 wallpaperLayers[currentLayerIndex].style.opacity = '1';
                 
+                // 确保壁纸铺满屏幕
+                ensureFullCoverage(wallpaperLayers[currentLayerIndex]);
+                
                 const otherLayerIndex = (currentLayerIndex + 1) % 2;
                 wallpaperLayers[otherLayerIndex].style.opacity = '0';
             }
+            
+            // 每次调整窗口大小时，重新确保壁纸铺满屏幕
+            ensureFullCoverage(wallpaperLayers[currentLayerIndex]);
         });
     }
 
