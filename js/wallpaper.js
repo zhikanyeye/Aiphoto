@@ -98,18 +98,40 @@ document.addEventListener('DOMContentLoaded', function() {
         preloadImages(wallpapers);
         
         let currentLayerIndex = 0;
-        let currentWallpaperIndex = 0;
-        
-        // 设置初始壁纸
-        wallpaperLayers[0].style.backgroundImage = `url('${wallpapers[0]}')`;
+        let currentWallpaperIndex = 0; // Will be updated below
+
+        // 根据设备类型选择壁纸集合
+        // const wallpapers = isMobileDevice() ? mobileWallpapers : desktopWallpapers; // Already defined above in this scope
+
+        if (wallpapers.length > 0) {
+            currentWallpaperIndex = Math.floor(Math.random() * wallpapers.length); // Random initial index
+            // 设置初始壁纸
+            wallpaperLayers[0].style.backgroundImage = `url('${wallpapers[currentWallpaperIndex]}')`;
+        } else {
+            // 如果没有壁纸，可以设置一个默认背景或留空
+            console.warn('No wallpapers available to set initial background.');
+        }
         
         // 确保壁纸铺满屏幕
         ensureFullCoverage(wallpaperLayers[0]);
         
         // 壁纸切换函数
         function changeWallpaper() {
-            // 获取下一个壁纸索引
-            currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpapers.length;
+            // 获取下一个随机壁纸索引，并确保与当前不同
+            if (!wallpapers || wallpapers.length === 0) {
+                // No wallpapers, do nothing
+                return;
+            }
+            if (wallpapers.length === 1) {
+                // Only one wallpaper, no need to change or can't change to a different one
+                currentWallpaperIndex = 0; 
+            } else {
+                let newWallpaperIndex;
+                do {
+                    newWallpaperIndex = Math.floor(Math.random() * wallpapers.length);
+                } while (newWallpaperIndex === currentWallpaperIndex);
+                currentWallpaperIndex = newWallpaperIndex;
+            }
             
             // 获取当前显示层和下一显示层
             const currentLayer = wallpaperLayers[currentLayerIndex];
@@ -199,4 +221,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 启动壁纸功能
     initWallpaper();
-}); 
+});

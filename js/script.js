@@ -221,11 +221,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // 监听窗口大小变化
     window.addEventListener('resize', adjustLayoutForMobile);
     
-    // 设置简单的渐变背景
-    document.body.style.background = 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)';
+    // // 设置简单的渐变背景 (已被随机背景替换)
+    // document.body.style.background = 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)';
     
     // 初始化参数提示工具提示
     setTimeout(initializeTooltips, 100);
+
 });
 
 function toggleTag(element) {
