@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => announcement.remove(), 500);
         }
     }, 5000);
-
+    
     // 创建图片预览功能
     createImagePreview();
     
@@ -1130,50 +1130,50 @@ async function generateImage() {
     // 状态消息处理
     const apiStatusMessage = document.getElementById('apiStatusMessage');
     apiStatusMessage.textContent = ''; // 清空之前的消息
-    
+
     // 确定英文提示词 - 仅在描述词改变时重新处理
     let englishPrompt;
     if (promptChanged) {
-        // 优先使用AI优化的英文提示词
-        const aiEnhancedEnglish = document.getElementById('prompt').dataset.aiEnhancedEnglish;
-        if (aiEnhancedEnglish) {
-            englishPrompt = aiEnhancedEnglish;
-            apiStatusMessage.textContent = '使用AI优化的英文提示词';
-            document.getElementById('prompt').dataset.aiEnhancedEnglish = '';
+    // 优先使用AI优化的英文提示词
+    const aiEnhancedEnglish = document.getElementById('prompt').dataset.aiEnhancedEnglish;
+    if (aiEnhancedEnglish) {
+        englishPrompt = aiEnhancedEnglish;
+        apiStatusMessage.textContent = '使用AI优化的英文提示词';
+        document.getElementById('prompt').dataset.aiEnhancedEnglish = '';
+    } else {
+        const promptEnhancementsData = document.getElementById('prompt').dataset.enhancements || '';
+        const enhancementsArray = promptEnhancementsData ? promptEnhancementsData.split(',') : [];
+
+        const matchedInspiration = inspirations.find(insp => 
+            insp.split('|')[0].trim().includes(basePrompt) || 
+            insp.includes(basePrompt)
+        );
+
+        if (matchedInspiration) {
+            englishPrompt = matchedInspiration.split('|')[1].trim();
+            apiStatusMessage.textContent = '提示词已从灵感库匹配。';
         } else {
-            const promptEnhancementsData = document.getElementById('prompt').dataset.enhancements || '';
-            const enhancementsArray = promptEnhancementsData ? promptEnhancementsData.split(',') : [];
-
-            const matchedInspiration = inspirations.find(insp => 
-                insp.split('|')[0].trim().includes(basePrompt) || 
-                insp.includes(basePrompt)
-            );
-
-            if (matchedInspiration) {
-                englishPrompt = matchedInspiration.split('|')[1].trim();
-                apiStatusMessage.textContent = '提示词已从灵感库匹配。';
-            } else {
-                apiStatusMessage.textContent = '正在翻译提示词...';
-                try {
-                    const translatedText = await translateWithNiutrans(basePrompt);
-                    if (translatedText !== basePrompt) {
-                        englishPrompt = translatedText;
-                        apiStatusMessage.textContent = '提示词翻译成功！';
-                    } else {
+            apiStatusMessage.textContent = '正在翻译提示词...';
+            try {
+                const translatedText = await translateWithNiutrans(basePrompt);
+                if (translatedText !== basePrompt) {
+                    englishPrompt = translatedText;
+                    apiStatusMessage.textContent = '提示词翻译成功！';
+                } else {
                         englishPrompt = basePrompt;
-                        apiStatusMessage.textContent = '翻译未配置或失败，将使用原始提示词。';
-                    }
-                } catch (error) {
-                    console.error('调用翻译API时出错:', error);
-                    englishPrompt = basePrompt;
-                    apiStatusMessage.textContent = '翻译API调用出错，将使用原始提示词。';
+                    apiStatusMessage.textContent = '翻译未配置或失败，将使用原始提示词。';
                 }
+            } catch (error) {
+                console.error('调用翻译API时出错:', error);
+                    englishPrompt = basePrompt;
+                apiStatusMessage.textContent = '翻译API调用出错，将使用原始提示词。';
             }
-            
-            if (enhancementsArray.length > 0) {
-                englishPrompt += ', ' + enhancementsArray.join(', ');
-                document.getElementById('prompt').dataset.enhancements = '';
-            }
+        }
+        
+        if (enhancementsArray.length > 0) {
+            englishPrompt += ', ' + enhancementsArray.join(', ');
+            document.getElementById('prompt').dataset.enhancements = '';
+        }
         }
         
         // 缓存英文提示词
@@ -1213,7 +1213,7 @@ async function generateImage() {
     }, 3000);
 
     let fullPrompt = `${englishPrompt}, ${qualityTags.join(', ')}, highly detailed`;
-    
+
     const previewContainer = document.getElementById('previewContainer');
     previewContainer.innerHTML = '';
 
@@ -1396,18 +1396,25 @@ async function downloadImage(url, index) {
         // 检测移动设备
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
+        // 尝试在所有设备上统一使用下载链接
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
         if (isMobile) {
-            // 移动设备上打开新标签页显示图片
-            statusMsg.textContent = '长按图片保存到设备';
-            window.open(blobUrl, '_blank');
+            // 移动设备上，如果直接下载未生效，提示用户
+            // 延迟检查，因为下载可能需要一点时间启动
+            setTimeout(() => {
+                // 这里的检查逻辑可以根据实际情况调整，例如检查下载是否真的开始
+                // 作为一种回退，如果下载似乎没有自动开始，可以提示用户
+                // 但通常现代移动浏览器应该能处理 a.download
+                // statusMsg.textContent = '若未自动下载，请长按图片保存';
+            }, 1500); 
         } else {
-            // 桌面设备上正常下载
-            const link = document.createElement('a');
-            link.href = blobUrl;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // 桌面设备上可以保持原有逻辑或统一处理
         }
         
         URL.revokeObjectURL(blobUrl);
@@ -1683,13 +1690,13 @@ function checkApiKeyStatus() {
     // 更新API状态消息
     const apiStatusMessage = document.getElementById('apiStatusMessage');
     if (apiStatusMessage) {
-        if (apiKey) {
+    if (apiKey) {
             apiStatusMessage.textContent = '✅ 翻译API已配置';
             apiStatusMessage.className = 'text-sm text-green-600 mt-1 h-5';
         } else if (apiSetupSkipped) {
             apiStatusMessage.textContent = '⚠️ 使用原始提示词（未配置API）';
             apiStatusMessage.className = 'text-sm text-yellow-600 mt-1 h-5';
-        } else {
+    } else {
             apiStatusMessage.textContent = '';
         }
     }
@@ -1697,7 +1704,7 @@ function checkApiKeyStatus() {
     // 如果既没有API密钥也没有跳过设置，且按钮未被隐藏，显示API设置面板
     if (!apiKey && !apiSetupSkipped && !apiButtonHidden) {
         // 延迟显示设置面板，让页面先加载完成
-        setTimeout(() => {
+    setTimeout(() => {
             toggleApiSettings();
         }, 1000);
     }
