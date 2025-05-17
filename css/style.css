@@ -10,25 +10,26 @@ body {
 }
 
 .card {
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255,255,255,0.7); /* 降低透明度，从0.85改为0.7 */
+    backdrop-filter: blur(8px); /* 减少模糊程度，从10px改为8px */
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.3); /* 增加边框透明度 */
     transition: all 0.3s ease;
-    border-radius: 1.5rem; /* 增加卡片圆角 */
+    border-radius: 1.5rem; /* 保持卡片圆角 */
     overflow: hidden;
 }
 
 .card:hover {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    background: rgba(255,255,255,0.75); /* 悬停时稍微增加不透明度 */
 }
 
 .preview {
     position: relative;
-    border-radius: 1rem; /* 增加预览图片圆角 */
+    border-radius: 1rem; /* 保持预览图片圆角 */
     overflow: hidden;
-    background-color: rgba(243, 244, 246, 0.5);
+    background-color: rgba(243, 244, 246, 0.4); /* 降低透明度，从0.5改为0.4 */
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     aspect-ratio: 1 / 1;
@@ -46,7 +47,7 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 1rem; /* 增加图片圆角 */
+    border-radius: 1rem; /* 保持图片圆角 */
 }
 
 .download-btn {
@@ -57,7 +58,7 @@ body {
     background-color: rgba(59, 130, 246, 0.9);
     color: white;
     padding: 0.5rem 1rem;
-    border-radius: 0.75rem; /* 增加下载按钮圆角 */
+    border-radius: 0.75rem; /* 保持下载按钮圆角 */
     opacity: 0;
     transition: all 0.3s ease;
 }
@@ -74,8 +75,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(255, 255, 255, 0.7);
-    border-radius: 1rem; /* 增加加载区域圆角 */
+    background-color: rgba(255, 255, 255, 0.6); /* 降低透明度，从0.7改为0.6 */
+    border-radius: 1rem; /* 保持加载区域圆角 */
 }
 
 /* 壁纸相关样式 */
@@ -122,14 +123,16 @@ body {
 
 /* 优化输入框和按钮样式 */
 textarea, input, select {
-    background-color: rgba(255, 255, 255, 0.8) !important;
-    border-radius: 0.75rem !important; /* 统一输入框圆角 */
+    background-color: rgba(255, 255, 255, 0.7) !important; /* 降低透明度，从0.8改为0.7 */
+    border-radius: 0.75rem !important; /* 保持输入框圆角 */
+    border: 1px solid rgba(255, 255, 255, 0.4) !important; /* 添加更明显的边框 */
 }
 
 /* 优化灵感库样式 */
 .bg-gray-50 {
-    background-color: rgba(249, 250, 251, 0.8) !important;
-    border-radius: 1rem; /* 增加灵感库背景圆角 */
+    background-color: rgba(249, 250, 251, 0.7) !important; /* 降低透明度，从0.8改为0.7 */
+    border-radius: 1rem; /* 保持灵感库背景圆角 */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* 添加边框 */
 }
 
 /* 添加响应式样式 */
@@ -159,34 +162,36 @@ textarea, input, select {
 .quality-tag {
     display: inline-block;
     padding: 0.25rem 0.75rem;
-    background-color: rgba(243, 244, 246, 0.8);
+    background-color: rgba(243, 244, 246, 0.6); /* 降低透明度，从0.8改为0.6 */
     color: #4b5563;
-    border-radius: 0.75rem; /* 增加标签圆角 */
+    border-radius: 0.75rem; /* 保持标签圆角 */
     cursor: pointer;
     transition: all 0.2s ease;
+    border: 1px solid rgba(229, 231, 235, 0.3); /* 添加边框 */
 }
 
 .quality-tag:hover {
-    background-color: rgba(229, 231, 235, 0.9);
+    background-color: rgba(229, 231, 235, 0.8);
 }
 
 .quality-tag.active {
     background-color: rgba(59, 130, 246, 0.2);
     color: #2563eb;
     font-weight: 500;
+    border: 1px solid rgba(59, 130, 246, 0.3); /* 添加更明显的边框 */
 }
 
 /* 灵感项目样式 */
 .inspiration-item {
     cursor: pointer;
     transition: all 0.2s ease;
-    background-color: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(229, 231, 235, 0.5);
-    border-radius: 1rem; /* 增加灵感项目圆角 */
+    background-color: rgba(255, 255, 255, 0.6); /* 降低透明度，从0.7改为0.6 */
+    border: 1px solid rgba(229, 231, 235, 0.4); /* 调整边框透明度 */
+    border-radius: 1rem; /* 保持灵感项目圆角 */
 }
 
 .inspiration-item:hover {
-    background-color: rgba(243, 244, 246, 0.9);
+    background-color: rgba(243, 244, 246, 0.8);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
@@ -201,20 +206,16 @@ textarea, input, select {
 
 #promptHint span {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border-radius: 0.75rem; /* 增加提示文字圆角 */
+    border-radius: 0.75rem; /* 保持提示文字圆角 */
 }
-
-/* 必应壁纸样式 - 已禁用 */
-/* 
-*/
 
 /* 参数提示工具提示样式 */
 .tooltip {
     position: absolute;
-    background-color: #333;
+    background-color: rgba(51, 51, 51, 0.9); /* 调整为半透明 */
     color: white;
     padding: 8px 12px;
-    border-radius: 0.75rem; /* 增加工具提示圆角 */
+    border-radius: 0.75rem; /* 保持工具提示圆角 */
     z-index: 100;
     width: 250px;
     top: -5px;
@@ -223,6 +224,8 @@ textarea, input, select {
     line-height: 1.4;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     transition: opacity 0.3s;
+    backdrop-filter: blur(5px); /* 添加模糊效果 */
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .tooltip::before {
@@ -232,7 +235,7 @@ textarea, input, select {
     left: -6px;
     border-width: 6px 6px 6px 0;
     border-style: solid;
-    border-color: transparent #333 transparent transparent;
+    border-color: transparent rgba(51, 51, 51, 0.9) transparent transparent; /* 匹配背景颜色 */
 }
 
 .param-help {
@@ -247,32 +250,30 @@ textarea, input, select {
     transform: translate(-50%, -50%);
     width: 90%;
     max-width: 500px;
-    border-radius: 1.5rem; /* 增加设置面板圆角 */
-    z-index: 100;
-    background-color: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    border-radius: 1.5rem; /* 保持设置面板圆角 */
+    background-color: rgba(255, 255, 255, 0.75); /* 降低透明度，从0.9改为0.75 */
+    backdrop-filter: blur(10px); /* 减少模糊程度，从15px改为10px */
+    -webkit-backdrop-filter: blur(10px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.4); /* 增加边框透明度 */
 }
 
-/* 动画效果 */
+/* 添加脉动动画 */
 @keyframes pulse {
-    0% { opacity: 0.7; }
-    50% { opacity: 1; }
-    100% { opacity: 0.7; }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
 .loading {
-    animation: pulse 1.5s infinite;
+    animation: pulse 1.5s infinite ease-in-out;
 }
 
 .animate-fade-in {
     animation: fadeIn 0.5s ease-out forwards;
 }
 
-/* 按钮圆角样式 */
+/* 按钮统一样式 */
 button {
-    border-radius: 0.75rem; /* 统一按钮圆角 */
+    transition: all 0.2s ease;
 } 

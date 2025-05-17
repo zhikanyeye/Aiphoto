@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
-                transition: opacity 1.5s ease, filter 1.5s ease;
+                transition: opacity 2s ease, filter 2s ease;
                 opacity: ${i === 0 ? '1' : '0'};
                 will-change: opacity, filter;
                 transform: translateZ(0);
@@ -381,16 +381,20 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 执行过渡动画
             function performTransition() {
-            // 添加模糊玻璃切换动画
-            currentLayer.style.filter = 'blur(15px)';
-            nextLayer.style.filter = 'blur(0px)';
-            
-            // 切换透明度
-            nextLayer.style.opacity = '1';
-            currentLayer.style.opacity = '0';
-            
-            // 更新当前层索引
-            currentLayerIndex = nextLayerIndex;
+                // 添加模糊玻璃切换动画 - 降低模糊程度
+                currentLayer.style.filter = 'blur(8px)'; // 从15px降低到8px
+                nextLayer.style.filter = 'blur(0px)';
+                
+                // 添加轻微的缩放效果
+                currentLayer.style.transform = 'scale(1.02)';
+                nextLayer.style.transform = 'scale(1)';
+                
+                // 切换透明度
+                nextLayer.style.opacity = '1';
+                currentLayer.style.opacity = '0';
+                
+                // 更新当前层索引
+                currentLayerIndex = nextLayerIndex;
                 
                 // 开始预加载下一批图片
                 smartPreloadImages(wallpapers, currentWallpaperIndex);
@@ -450,32 +454,33 @@ document.addEventListener('DOMContentLoaded', function() {
             // 使用防抖处理resize事件
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-            const newWallpapers = isMobileDevice() ? mobileWallpapers : desktopWallpapers;
-            
-            // 如果壁纸集合发生变化，立即更新当前显示的壁纸
-            if (wallpapers !== newWallpapers) {
-                // 更新壁纸集合引用
-                wallpapers.length = 0;
-                newWallpapers.forEach(wp => wallpapers.push(wp));
+                const newWallpapers = isMobileDevice() ? mobileWallpapers : desktopWallpapers;
                 
-                // 重置索引并立即更改壁纸
-                currentWallpaperIndex = 0;
+                // 如果壁纸集合发生变化，立即更新当前显示的壁纸
+                if (wallpapers !== newWallpapers) {
+                    // 更新壁纸集合引用
+                    wallpapers.length = 0;
+                    newWallpapers.forEach(wp => wallpapers.push(wp));
+                    
+                    // 重置索引并立即更改壁纸
+                    currentWallpaperIndex = 0;
                     setOptimizedBackground(wallpaperLayers[currentLayerIndex], wallpapers[0]);
-                wallpaperLayers[currentLayerIndex].style.filter = 'blur(0px)';
-                wallpaperLayers[currentLayerIndex].style.opacity = '1';
-                
-                // 确保壁纸铺满屏幕
-                ensureFullCoverage(wallpaperLayers[currentLayerIndex]);
-                
-                const otherLayerIndex = (currentLayerIndex + 1) % 2;
-                wallpaperLayers[otherLayerIndex].style.opacity = '0';
+                    wallpaperLayers[currentLayerIndex].style.filter = 'blur(0px)';
+                    wallpaperLayers[currentLayerIndex].style.opacity = '1';
+                    wallpaperLayers[currentLayerIndex].style.transform = 'scale(1)'; // 重置缩放
+                    
+                    // 确保壁纸铺满屏幕
+                    ensureFullCoverage(wallpaperLayers[currentLayerIndex]);
+                    
+                    const otherLayerIndex = (currentLayerIndex + 1) % 2;
+                    wallpaperLayers[otherLayerIndex].style.opacity = '0';
                     
                     // 开始智能预加载
                     smartPreloadImages(wallpapers, 0);
-            }
-            
-            // 每次调整窗口大小时，重新确保壁纸铺满屏幕
-            ensureFullCoverage(wallpaperLayers[currentLayerIndex]);
+                }
+                
+                // 每次调整窗口大小时，重新确保壁纸铺满屏幕
+                ensureFullCoverage(wallpaperLayers[currentLayerIndex]);
             }, 200);
         });
         

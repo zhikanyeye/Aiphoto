@@ -100,30 +100,30 @@ Allow: /index.html
             background-color: transparent !important;
         }
         
+        /* 增加页面内容间距，让布局更加舒适 */
+        .content-spacing {
+            margin-bottom: 2rem;
+        }
+        
+        /* 增强卡片悬浮效果 */
         .card {
-            background-color: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s ease;
+            transform: translateY(0);
         }
         
-        .settings-panel {
-            background-color: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        .card:hover {
+            transform: translateY(-5px);
         }
         
-        /* 优化输入框和按钮样式 */
-        textarea, input, select {
-            background-color: rgba(255, 255, 255, 0.8) !important;
+        /* 优化输入区域样式 */
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
         }
         
         /* 优化灵感库样式 */
         .bg-gray-50 {
-            background-color: rgba(249, 250, 251, 0.8) !important;
+            background-color: rgba(249, 250, 251, 0.7) !important;
         }
         
         /* 响应式标题样式 */
@@ -147,13 +147,13 @@ Allow: /index.html
         }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
+<body class="min-h-screen p-4 md:p-8 bg-gradient-to-b from-transparent to-transparent">
     <!-- 壁纸信息显示区域已移除 -->
     
-    <div class="max-w-4xl mx-auto space-y-8">
+    <div class="max-w-5xl mx-auto space-y-8"> <!-- 增加最大宽度，从4xl改为5xl -->
         <!-- API设置按钮 -->
-        <div class="flex justify-end mb-8" id="apiButtonContainer">
-            <button onclick="toggleApiSettings()" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700" id="apiSettingsButton">
+        <div class="flex justify-end mb-6" id="apiButtonContainer">
+            <button onclick="toggleApiSettings()" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-lg transition-all duration-300" id="apiSettingsButton">
                 ⚙️ API设置
             </button>
         </div>
@@ -177,14 +177,14 @@ Allow: /index.html
                 <p id="apiKeyStatus" class="mt-2 text-sm"></p>
             </div>
             <div class="flex justify-between">
-                <button onclick="clearApiKey()" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+                <button onclick="clearApiKey()" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow transition-all duration-300">
                     🗑️ 清除密钥
                 </button>
                 <div>
-                    <button onclick="skipApiSetup()" class="px-4 py-2 rounded-lg bg-gray-500 text-white hover:bg-gray-600 mr-2">
+                    <button onclick="skipApiSetup()" class="px-4 py-2 rounded-lg bg-gray-500 text-white hover:bg-gray-600 mr-2 shadow transition-all duration-300">
                         不设置API
                     </button>
-                    <button onclick="saveApiKey()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                    <button onclick="saveApiKey()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow transition-all duration-300">
                         保存
                     </button>
                 </div>
@@ -192,22 +192,22 @@ Allow: /index.html
         </div>
         
         <!-- 主内容 -->
-        <div class="card p-6">
-            <h1 class="text-4xl md:text-4xl text-2xl font-bold text-center text-gray-800 mb-8" id="siteTitle">
+        <div class="card p-6 md:p-8 content-spacing"> <!-- 增加内边距 -->
+            <h1 class="text-4xl md:text-5xl text-2xl font-bold text-center text-gray-800 mb-8 md:mb-10" id="siteTitle"> <!-- 增加标题大小和下边距 -->
                 <img src="img/logo.svg" alt="AI艺术工坊" class="inline-block h-8 w-8 md:h-12 md:w-12 mr-1 md:mr-2 align-middle">
                 <span class="align-middle">AI艺术工坊</span>
                 <span class="text-xl md:text-2xl text-blue-600 version">v3.0</span>
             </h1>
             
             <!-- 输入区域和灵感库并排布局 -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8"> <!-- 增加间距 -->
                 <!-- 左侧输入区域 -->
-                <div class="md:col-span-2 space-y-4">
+                <div class="md:col-span-2 space-y-5"> <!-- 增加垂直间距 -->
                     <div class="relative">
                         <textarea
                             id="prompt"
                             placeholder="描述你想要生成的图片内容..."
-                            class="w-full p-3 md:p-4 text-base md:text-lg rounded-lg focus:ring-4 focus:ring-blue-300 h-20 md:h-24 resize-none"
+                            class="w-full p-4 md:p-5 text-base md:text-lg rounded-lg focus:ring-4 focus:ring-blue-300 h-24 md:h-28 resize-none shadow-sm" <!-- 增加高度和内边距 -->
                             onkeydown="handleKeyPress(event)"
                         ></textarea>
                         <div class="absolute right-3 top-3 transition-opacity duration-300" id="promptHint">
@@ -217,7 +217,7 @@ Allow: /index.html
                     <div id="apiStatusMessage" class="text-sm text-gray-500 mt-1 h-5"></div>
 
                     <!-- 质量标签 -->
-                    <div class="space-y-2">
+                    <div class="space-y-2 content-spacing">
                         <label class="block text-sm font-medium text-gray-700">
                             画质增强标签（点击选择，建议2-3个）
                         </label>
@@ -236,24 +236,24 @@ Allow: /index.html
                     </div>
 
                     <!-- 负面提示词 -->
-                    <div>
+                    <div class="content-spacing">
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             负面提示词（告诉AI不要生成什么）
                         </label>
                         <textarea
                             id="negativePrompt"
                             placeholder="例如：模糊, 变形, 低质量..."
-                            class="w-full p-2 text-sm rounded-lg h-12 resize-none"
+                            class="w-full p-3 text-sm rounded-lg h-14 resize-none shadow-sm" <!-- 增加高度 -->
                         >低质量, 模糊, 变形, 扭曲, 低分辨率, 草图, 不完整, 水印</textarea>
                     </div>
 
                     <!-- 参数设置 -->
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 content-spacing"> <!-- 增加间距 -->
                         <div>
                             <label class="block mb-2 text-sm font-medium text-gray-700">
                                 图片尺寸 (分辨率)
                             </label>
-                            <select id="aspectRatio" class="p-3 rounded-lg w-full">
+                            <select id="aspectRatio" class="p-3 rounded-lg w-full shadow-sm">
                                 <option value="1024:1024">1024x1024 (1:1 正方形)</option>
                                 <option value="1280:720">1280x720 (16:9 横屏 HD)</option>
                                 <option value="1920:1080">1920x1080 (16:9 横屏 Full HD)</option>
@@ -265,7 +265,7 @@ Allow: /index.html
                             <label class="block mb-2 text-sm font-medium text-gray-700">
                                 生成数量
                             </label>
-                            <select id="generateCount" class="p-3 rounded-lg w-full">
+                            <select id="generateCount" class="p-3 rounded-lg w-full shadow-sm">
                                 <option value="1">生成 1 张</option>
                                 <option value="2">生成 2 张</option>
                                 <option value="4">生成 4 张</option>
@@ -274,9 +274,9 @@ Allow: /index.html
                     </div>
 
                     <!-- 高级参数设置 -->
-                    <div class="mb-4 p-4 bg-gray-100 rounded-lg">
+                    <div class="mb-4 p-4 md:p-5 bg-gray-100 rounded-lg shadow-sm content-spacing"> <!-- 增加内边距 -->
                         <h3 class="text-lg font-medium mb-3">高级参数设置</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"> <!-- 增加间距 -->
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">采样步数</label>
@@ -372,11 +372,11 @@ Allow: /index.html
                     </div>
 
                     <!-- 生成按钮 -->
-                    <div class="flex justify-center mt-4">
+                    <div class="flex justify-center mt-6"> <!-- 增加上边距 -->
                         <button 
                             onclick="generateImage()"
                             id="generateBtn"
-                            class="px-6 md:px-8 py-3 md:py-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-base md:text-lg font-semibold"
+                            class="px-6 md:px-8 py-3 md:py-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-base md:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300" <!-- 添加阴影和过渡效果 -->
                         >
                             🎨 生成图片
                         </button>
@@ -384,17 +384,17 @@ Allow: /index.html
                 </div>
 
                 <!-- 右侧灵感库 -->
-                <div class="bg-gray-50 rounded-lg p-4 h-fit">
+                <div class="bg-gray-50 rounded-lg p-4 md:p-5 h-fit shadow-sm"> <!-- 增加内边距 -->
                     <h3 class="font-semibold mb-4 text-lg">✨ 灵感库</h3>
-                    <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2" id="inspirationList">
+                    <div class="space-y-3 max-h-[450px] overflow-y-auto pr-2" id="inspirationList"> <!-- 增加高度 -->
                         <!-- 灵感列表由JavaScript动态生成 -->
                     </div>
                 </div>
             </div>
 
             <!-- 生成区域 -->
-            <div class="mt-8">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="previewContainer">
+            <div class="mt-8 md:mt-10"> <!-- 增加上边距 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6" id="previewContainer"> <!-- 增加间距 -->
                     <!-- 预览图片将在这里动态生成 -->
                 </div>
             </div>
