@@ -16,7 +16,7 @@ Allow: /index.html
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta name="referrer" content="no-referrer">
-    <!-- 添加安全相关元标签 -->
+    <!-- 添加安全相关元标 -->
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, noarchive">
     
@@ -41,7 +41,7 @@ Allow: /index.html
             let hash = 0;
             for (let i = 0; i < fingerData.length; i++) {
                 hash = ((hash << 5) - hash) + fingerData.charCodeAt(i);
-                hash = hash & hash; // 转换为32位整数
+                hash = hash & hash; // 转换2位整数
             }
             
             // 存储指纹
@@ -150,7 +150,7 @@ Allow: /index.html
 <body class="min-h-screen p-4 md:p-8 bg-gradient-to-b from-transparent to-transparent">
     <!-- 壁纸信息显示区域已移除 -->
     
-    <div class="max-w-5xl mx-auto space-y-8"> <!-- 增加最大宽度，从4xl改为5xl -->
+    <div class="max-w-5xl mx-auto space-y-8"> <!-- 增加最大宽度，xl改为5xl -->
         <!-- API设置按钮 -->
         <div class="flex justify-end mb-6" id="apiButtonContainer">
             <button onclick="toggleApiSettings()" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-lg transition-all duration-300" id="apiSettingsButton">
@@ -178,7 +178,7 @@ Allow: /index.html
             </div>
             <div class="flex justify-between">
                 <button onclick="clearApiKey()" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow transition-all duration-300">
-                    🗑️ 清除密钥
+                    🗑 清除密钥
                 </button>
                 <div>
                     <button onclick="skipApiSetup()" class="px-4 py-2 rounded-lg bg-gray-500 text-white hover:bg-gray-600 mr-2 shadow transition-all duration-300">
@@ -219,7 +219,7 @@ Allow: /index.html
                     <!-- 质量标签 -->
                     <div class="space-y-2 content-spacing">
                         <label class="block text-sm font-medium text-gray-700">
-                            画质增强标签（点击选择，建议2-3个）
+                            画质增强标签（点击选择，建议-3个）
                         </label>
                         <div id="qualityTags" class="flex flex-wrap gap-2">
                             <span class="quality-tag" onclick="toggleTag(this)" data-en="masterpiece">艺术杰作</span>
@@ -243,7 +243,7 @@ Allow: /index.html
                         <textarea
                             id="negativePrompt"
                             placeholder="例如：模糊, 变形, 低质量..."
-                            class="w-full p-3 text-sm rounded-lg h-14 resize-none shadow-sm" <!-- 增加高度 -->
+                            class="w-full p-3 text-sm rounded-lg h-14 resize-none shadow-sm"
                         >低质量, 模糊, 变形, 扭曲, 低分辨率, 草图, 不完整, 水印</textarea>
                     </div>
 
@@ -280,12 +280,12 @@ Allow: /index.html
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">采样步数</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="采样步数决定AI生成图像的精细程度。步数越高，图像细节越丰富，但生成时间也越长。推荐值：30-70。">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="采样步数决定AI生成图像的精细程度。步数越高，图像细节越丰富，但生成时间也越长。推荐值：30-70步">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
-                                    <div class="tooltip hidden">采样步数决定AI生成图像的精细程度。步数越高，图像细节越丰富，但生成时间也越长。推荐值：30-70。</div>
+                                    <div class="tooltip hidden">采样步数决定AI生成图像的精细程度。步数越高，图像细节越丰富，但生成时间也越长。推荐值：30-70步</div>
                                 </div>
                                 <input type="range" id="steps" min="20" max="150" value="50" 
                                     class="w-full" onchange="updateStepsValue(this.value)">
@@ -295,12 +295,12 @@ Allow: /index.html
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">CFG Scale</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="CFG Scale控制AI对提示词的遵循程度。值越高，图像越符合提示词描述，但创意性可能降低；值越低，创意性越强但可能偏离提示词。推荐值：7-9。">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="CFG Scale控制AI对提示词的遵循程度。值越高，图像越符合提示词描述，但创意性可能降低；值越低，创意性越强但可能偏离提示词。推荐值：7-9">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
-                                    <div class="tooltip hidden">CFG Scale控制AI对提示词的遵循程度。值越高，图像越符合提示词描述，但创意性可能降低；值越低，创意性越强但可能偏离提示词。推荐值：7-9。</div>
+                                    <div class="tooltip hidden">CFG Scale控制AI对提示词的遵循程度。值越高，图像越符合提示词描述，但创意性可能降低；值越低，创意性越强但可能偏离提示词。推荐值：7-9</div>
                                 </div>
                                 <input type="range" id="cfgScale" min="1" max="20" value="7" step="0.5"
                                     class="w-full" onchange="updateCfgValue(this.value)">
@@ -310,12 +310,12 @@ Allow: /index.html
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">随机种子</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="种子值决定图像的初始随机状态。使用相同的种子值和参数可以生成相似的图像。留空则每次生成随机种子。记录喜欢的图像的种子值可以帮助您重现类似效果。">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="种子值决定图像的初始随机状态。使用相同的种子值和参数可以生成相似的图像。留空则每次生成随机种子。记录喜欢的图像的种子值可以帮助您重现类似效果">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
-                                    <div class="tooltip hidden">种子值决定图像的初始随机状态。使用相同的种子值和参数可以生成相似的图像。留空则每次生成随机种子。记录喜欢的图像的种子值可以帮助您重现类似效果。</div>
+                                    <div class="tooltip hidden">种子值决定图像的初始随机状态。使用相同的种子值和参数可以生成相似的图像。留空则每次生成随机种子。记录喜欢的图像的种子值可以帮助您重现类似效果</div>
                                 </div>
                                 <input type="number" id="seed" class="w-full px-2 py-1 rounded border"
                                     placeholder="留空则随机">
@@ -324,30 +324,30 @@ Allow: /index.html
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">采样方法</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="不同的采样方法会产生不同风格的图像。Euler a适合创意性强的图像；DDIM生成更稳定可控的结果；DPM++生成细节丰富的高质量图像。">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="不同的采样方法会产生不同风格的图像。Euler a适合创意性强的图像；DDIM生成更稳定可控的结果；DPM++生成细节丰富的高质量图像">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
-                                    <div class="tooltip hidden">不同的采样方法会产生不同风格的图像。Euler a适合创意性强的图像；DDIM生成更稳定可控的结果；DPM++生成细节丰富的高质量图像。</div>
+                                    <div class="tooltip hidden">不同的采样方法会产生不同风格的图像。Euler a适合创意性强的图像；DDIM生成更稳定可控的结果；DPM++生成细节丰富的高质量图像</div>
                                 </div>
                                 <select id="sampler" class="w-full px-2 py-1 rounded border">
                                     <option value="euler_a">Euler a (创意性强)</option>
                                     <option value="ddim">DDIM (稳定可控)</option>
                                     <option value="dpm++">DPM++ (细节丰富)</option>
-                                    <option value="k_lms">k_LMS (平衡型)</option>
+                                    <option value="k_lms">k_LMS (平衡)</option>
                                 </select>
                             </div>
                             
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">噪声强度</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="噪声强度影响图像的随机性和纹理。较高的值会产生更多的纹理细节和随机性，较低的值则产生更平滑的结果。">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="噪声强度影响图像的随机性和纹理。较高的值会产生更多的纹理细节和随机性，较低的值则产生更平滑的结果">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
-                                    <div class="tooltip hidden">噪声强度影响图像的随机性和纹理。较高的值会产生更多的纹理细节和随机性，较低的值则产生更平滑的结果。</div>
+                                    <div class="tooltip hidden">噪声强度影响图像的随机性和纹理。较高的值会产生更多的纹理细节和随机性，较低的值则产生更平滑的结果</div>
                                 </div>
                                 <input type="range" id="noise" min="0" max="1" value="0.2" step="0.05"
                                     class="w-full" onchange="updateNoiseValue(this.value)">
@@ -357,12 +357,12 @@ Allow: /index.html
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">风格强度</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="风格强度控制AI应用艺术风格的程度。较高的值会使风格特征更明显，较低的值则更接近写实。">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="风格强度控制AI应用艺术风格的程度。较高的值会使风格特征更明显，较低的值则更接近写实">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
-                                    <div class="tooltip hidden">风格强度控制AI应用艺术风格的程度。较高的值会使风格特征更明显，较低的值则更接近写实。</div>
+                                    <div class="tooltip hidden">风格强度控制AI应用艺术风格的程度。较高的值会使风格特征更明显，较低的值则更接近写实</div>
                                 </div>
                                 <input type="range" id="styleStrength" min="0" max="1" value="0.6" step="0.05"
                                     class="w-full" onchange="updateStyleValue(this.value)">
@@ -377,7 +377,7 @@ Allow: /index.html
                             onclick="generateImage()"
                             id="generateBtn"
                             class="px-6 md:px-8 py-3 md:py-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-base md:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300" <!-- 添加阴影和过渡效果 -->
-                        >
+                        
                             🎨 生成图片
                         </button>
                     </div>
@@ -385,7 +385,7 @@ Allow: /index.html
 
                 <!-- 右侧灵感库 -->
                 <div class="bg-gray-50 rounded-lg p-4 md:p-5 h-fit shadow-sm"> <!-- 增加内边距 -->
-                    <h3 class="font-semibold mb-4 text-lg">✨ 灵感库</h3>
+                    <h3 class="font-semibold mb-4 text-lg">灵感库</h3>
                     <div class="space-y-3 max-h-[450px] overflow-y-auto pr-2" id="inspirationList"> <!-- 增加高度 -->
                         <!-- 灵感列表由JavaScript动态生成 -->
                     </div>
