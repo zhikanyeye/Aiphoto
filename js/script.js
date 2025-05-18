@@ -1679,6 +1679,23 @@ function toggleApiSettings() {
     if (!settingsPanel.classList.contains('hidden')) {
         const savedApiKey = localStorage.getItem('niutransApiKey') || '';
         document.getElementById('apiKeyInput').value = savedApiKey;
+        
+        // 确保设置面板显示在最上层
+        settingsPanel.style.position = 'fixed';
+        settingsPanel.style.zIndex = '1000';
+        
+        // 添加点击事件监听器，防止点击事件穿透到下层元素
+        document.addEventListener('click', function handleClickOutside(event) {
+            if (!settingsPanel.contains(event.target) && event.target.id !== 'apiSettingsButton') {
+                settingsPanel.classList.add('hidden');
+                document.removeEventListener('click', handleClickOutside);
+            }
+        });
+        
+        // 聚焦到输入框
+        setTimeout(() => {
+            document.getElementById('apiKeyInput').focus();
+        }, 100);
     }
 }
 
