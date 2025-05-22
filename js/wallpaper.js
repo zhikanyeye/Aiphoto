@@ -1,5 +1,23 @@
 // 背景壁纸切换功能 - 优化版
 document.addEventListener('DOMContentLoaded', function() {
+    // 存储所有需要清理的资源
+    if (!window.wallpaperResources) {
+        window.wallpaperResources = {
+            timeouts: new Set(),
+            intervals: new Set(),
+            eventListeners: new Set()
+        };
+    }
+    
+    // 安全的事件监听器添加函数
+    function addSafeEventListener(element, type, handler) {
+        element.addEventListener(type, handler);
+        // 记录事件监听器以便后续清理
+        if (window.wallpaperResources && window.wallpaperResources.eventListeners) {
+            window.wallpaperResources.eventListeners.add({element, type, handler});
+        }
+    }
+    
     // 手机设备壁纸列表
     const mobileWallpapers = [
         'https://img.lansq.xyz/file/ZhseFwM4.png',
@@ -111,28 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
             const img = new Image();
         
-        img.onload = function() {
-            // 标记为已加载成功
-            imageLoadStatus.loaded.add(imageUrl);
-            imageLoadStatus.loading.delete(imageUrl);
-            imageLoadStatus.preloaded.add(imageUrl);
-            
-            // 继续处理队列中的下一个
-            isPreloading = false;
-            setTimeout(processPreloadQueue, 10); // 小延迟避免浏览器过载
-        };
-        
-        img.onerror = function() {
-            // 标记为加载失败
-            imageLoadStatus.failed.add(imageUrl);
-            imageLoadStatus.loading.delete(imageUrl);
-            console.error('壁纸加载失败:', imageUrl);
-            
-            // 继续处理队列中的下一个
-            isPreloading = false;
-            setTimeout(processPreloadQueue, 10);
-        };
-        
         // 设置加载超时
         const timeout = setTimeout(() => {
             if (imageLoadStatus.loading.has(imageUrl)) {
@@ -146,6 +142,36 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 15000); // 15秒超时
         
+        // 设置加载事件处理，并确保清除超时定时器，防止内存泄漏
+        img.onload = function() {
+            clearTimeout(timeout);
+            // 标记为已加载成功
+            imageLoadStatus.loaded.add(imageUrl);
+            imageLoadStatus.loading.delete(imageUrl);
+            imageLoadStatus.preloaded.add(imageUrl);
+            
+            // 继续处理队列中的下一个
+            isPreloading = false;
+            setTimeout(processPreloadQueue, 10); // 小延迟避免浏览器过载
+        };
+        
+        img.onerror = function() {
+            clearTimeout(timeout);
+            // 标记为加载失败
+            imageLoadStatus.failed.add(imageUrl);
+            imageLoadStatus.loading.delete(imageUrl);
+            console.error('壁纸加载失败:', imageUrl);
+            
+            // 继续处理队列中的下一个
+            isPreloading = false;
+            setTimeout(processPreloadQueue, 10);
+        };
+        
+        // 记录超时定时器以便清理
+        if (window.wallpaperResources && window.wallpaperResources.timeouts) {
+            window.wallpaperResources.timeouts.add(timeout);
+        }
+        
         // 开始加载图片
             img.src = imageUrl;
         
@@ -154,11 +180,13 @@ document.addEventListener('DOMContentLoaded', function() {
             img.fetchPriority = 'high';
         }
         
-        // 使用 Fetch API 预热连接
-        try {
-            fetch(imageUrl, { method: 'HEAD', mode: 'no-cors', priority: 'high' })
-                .catch(() => {}); // 忽略错误，这只是预热
-        } catch (e) {}
+        // 使用 Fetch API 预热连接 - 添加安全检查
+        if (imageUrl && /^https?:\/\//i.test(imageUrl)) {
+            try {
+                fetch(imageUrl, { method: 'HEAD', mode: 'no-cors', priority: 'high' })
+                    .catch(() => {}); // 忽略错误，这只是预热
+            } catch (e) {}
+        }
     }
 
     // 创建背景壁纸容器
@@ -212,10 +240,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 设置背景图片的最优方式
     function setOptimizedBackground(element, imageUrl) {
+        // 安全检查：确保imageUrl是有效的URL
+        if (!imageUrl || typeof imageUrl !== 'string') {
+            console.error('无效的图片URL:', imageUrl);
+            return false;
+        }
+        
+        // 防止XSS攻击：确保URL是http或https协议
+        if (!/^https?:\/\//i.test(imageUrl)) {
+            console.error('不安全的图片URL协议:', imageUrl);
+            return false;
+        }
+        
         // 检查图片是否已加载
         if (imageLoadStatus.loaded.has(imageUrl)) {
-            // 直接设置背景
-            element.style.backgroundImage = `url('${imageUrl}')`;
+            // 直接设置背景 - 使用CSS转义防止XSS
+            const safeUrl = imageUrl.replace(/[\"\\'\&\<\>]/g, (char) => {
+                return '\\' + char.charCodeAt(0).toString(16).padStart(2, '0');
+            });
+            element.style.backgroundImage = `url('${safeUrl}')`;
             return true;
         } 
         
@@ -223,8 +266,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (imageLoadStatus.failed.has(imageUrl)) {
             const backupImage = isMobileDevice() ? 
                 mobileWallpapers[0] : desktopWallpapers[0];
-            if (imageUrl !== backupImage) {
-                element.style.backgroundImage = `url('${backupImage}')`;
+            if (imageUrl !== backupImage && backupImage && /^https?:\/\//i.test(backupImage)) {
+                // 使用CSS转义防止XSS
+                const safeBackupUrl = backupImage.replace(/[\"\\'\\\&\<\>]/g, (char) => {
+                    return '\\' + char.charCodeAt(0).toString(16).padStart(2, '0');
+                });
+                element.style.backgroundImage = `url('${safeBackupUrl}')`;  
+            } else {
+                console.error('无法加载备用壁纸');
+                // 使用纯色背景作为最后的备用方案
+                element.style.backgroundColor = '#f0f0f0';
+                element.style.backgroundImage = 'none';
             }
             return false;
         }
@@ -241,7 +293,11 @@ document.addEventListener('DOMContentLoaded', function() {
             img.onload = function() {
                 imageLoadStatus.loaded.add(imageUrl);
                 imageLoadStatus.loading.delete(imageUrl);
-                element.style.backgroundImage = `url('${imageUrl}')`;
+                // 使用CSS转义防止XSS
+                const safeUrl = imageUrl.replace(/[\"\'\\\&\<\>]/g, (char) => {
+                    return '\\' + char.charCodeAt(0).toString(16).padStart(2, '0');
+                });
+                element.style.backgroundImage = `url('${safeUrl}')`;
             };
             
             img.onerror = function() {
@@ -252,8 +308,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 使用第一张图片作为备用
                 const backupImage = isMobileDevice() ? 
                     mobileWallpapers[0] : desktopWallpapers[0];
-                if (imageUrl !== backupImage) {
+                if (imageUrl !== backupImage && backupImage && /^https?:\/\//i.test(backupImage)) {
                     setOptimizedBackground(element, backupImage);
+                } else {
+                    console.error('无法加载备用壁纸');
+                    // 使用纯色背景作为最后的备用方案
+                    element.style.backgroundColor = '#f0f0f0';
+                    element.style.backgroundImage = 'none';
                 }
             };
             
@@ -370,31 +431,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 100);
                 
                 // 设置超时，防止无限等待
-                setTimeout(() => {
+                const timeoutId = setTimeout(() => {
                     clearInterval(checkInterval);
                     if (!imageLoadStatus.loaded.has(imageUrl)) {
                         // 如果超时仍未加载，尝试另一张图片
                         changeWallpaper();
                     }
                 }, 5000);
+                
+                // 存储定时器ID，以便在组件卸载时清除
+                if (window.wallpaperResources && window.wallpaperResources.timeouts) {
+                    window.wallpaperResources.timeouts.add(timeoutId);
+                    window.wallpaperResources.timeouts.add(checkInterval);
+                }
             }
             
             // 执行过渡动画
             function performTransition() {
                 // 添加模糊玻璃切换动画 - 降低模糊程度
                 currentLayer.style.filter = 'blur(8px)'; // 从15px降低到8px
-            nextLayer.style.filter = 'blur(0px)';
+                nextLayer.style.filter = 'blur(0px)';
                 
                 // 添加轻微的缩放效果
                 currentLayer.style.transform = 'scale(1.02)';
                 nextLayer.style.transform = 'scale(1)';
             
-            // 切换透明度
-            nextLayer.style.opacity = '1';
-            currentLayer.style.opacity = '0';
+                // 切换透明度
+                nextLayer.style.opacity = '1';
+                currentLayer.style.opacity = '0';
             
-            // 更新当前层索引
-            currentLayerIndex = nextLayerIndex;
+                // 更新当前层索引
+                currentLayerIndex = nextLayerIndex;
                 
                 // 开始预加载下一批图片
                 smartPreloadImages(wallpapers, currentWallpaperIndex);
@@ -411,7 +478,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 在移动设备上，有些图片可能需要调整位置以更好地展示
                 const bgImage = layer.style.backgroundImage;
                 if (bgImage) {
-                    const imgUrl = bgImage.replace(/url\(['"]?(.*?)['"]?\)/i, '$1');
+                    const imgUrl = bgImage.replace(/url\(['"](.*?)['"]\)/i, '$1');
+                
+                // 安全检查：确保URL是有效的
+                if (!imgUrl || !/^https?:\/\//i.test(imgUrl)) {
+                    console.error('不安全的背景图片URL:', imgUrl);
+                    return;
+                }
                     
                     if (imageLoadStatus.loaded.has(imgUrl)) {
                         // 如果图片已加载，直接调整位置
@@ -424,8 +497,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     function adjustBackgroundPosition() {
-                        const imgRatio = img.width / img.height;
-                    const screenRatio = window.innerWidth / window.innerHeight;
+                        const imgRatio = img.width / img.height,
+                    screenRatio = window.innerWidth / window.innerHeight;
                     
                     if (imgRatio > screenRatio) {
                         // 图片更宽，居中显示
@@ -445,15 +518,55 @@ document.addEventListener('DOMContentLoaded', function() {
             layer.style.backgroundAttachment = 'fixed'; // 固定背景，防止滚动
         }
         
-        // 设置定时器，每30秒切换一次壁纸
-        setInterval(changeWallpaper, 30000);
+        // 设置智能定时器，每30秒切换一次壁纸，并在页面不可见时暂停
+        let wallpaperTimer = null;
+        let lastChangeTime = Date.now();
+        const changeInterval = 30000; // 30秒切换一次
+        
+        // 确保所有定时器都被跟踪
+        if (window.wallpaperResources && !window.wallpaperResources.timeouts) {
+            window.wallpaperResources.timeouts = new Set();
+        }
+        
+        // 启动定时器函数
+        function startWallpaperTimer() {
+            if (wallpaperTimer === null) {
+                wallpaperTimer = setInterval(() => {
+                    changeWallpaper();
+                    lastChangeTime = Date.now();
+                }, changeInterval);
+                
+                // 记录定时器ID以便清理
+                if (window.wallpaperResources && window.wallpaperResources.timeouts) {
+                    window.wallpaperResources.timeouts.add(wallpaperTimer);
+                }
+                
+                // 记录启动时间
+                wallpaperContainer.dataset.lastChange = Date.now();
+            }
+        }
+        
+        // 停止定时器函数
+        function stopWallpaperTimer() {
+            if (wallpaperTimer !== null) {
+                clearInterval(wallpaperTimer);
+                wallpaperTimer = null;
+            }
+        }
+        
+        // 初始启动定时器
+        startWallpaperTimer();
         
         // 监听窗口大小变化，重新检测设备类型并更新壁纸
         let resizeTimeout;
-        window.addEventListener('resize', function() {
+        const resizeHandler = function() {
             // 使用防抖处理resize事件
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
+                // 记录定时器ID以便清理
+                if (window.wallpaperResources && window.wallpaperResources.timeouts) {
+                    window.wallpaperResources.timeouts.add(resizeTimeout);
+                }
             const newWallpapers = isMobileDevice() ? mobileWallpapers : desktopWallpapers;
             
             // 如果壁纸集合发生变化，立即更新当前显示的壁纸
@@ -482,28 +595,74 @@ document.addEventListener('DOMContentLoaded', function() {
             // 每次调整窗口大小时，重新确保壁纸铺满屏幕
             ensureFullCoverage(wallpaperLayers[currentLayerIndex]);
             }, 200);
-        });
+        };
         
-        // 当页面变为可见时，检查是否需要更新壁纸
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
+        // 使用页面可见性API优化定时器行为
+        const visibilityHandler = function() {
+            if (document.hidden) {
+                // 页面隐藏时暂停定时器
+                stopWallpaperTimer();
+            } else {
                 // 页面变为可见时，确保壁纸正确显示
                 ensureFullCoverage(wallpaperLayers[currentLayerIndex]);
                 
-                // 如果已经很久没有切换壁纸，立即切换一次
-                const lastChangeTime = wallpaperContainer.dataset.lastChange || 0;
+                // 检查是否需要立即切换壁纸
                 const now = Date.now();
-                if (now - lastChangeTime > 60000) { // 如果超过1分钟
+                const timeSinceLastChange = now - lastChangeTime;
+                
+                if (timeSinceLastChange > changeInterval) {
+                    // 如果距离上次切换时间超过了正常间隔，立即切换一次
                     changeWallpaper();
-                    wallpaperContainer.dataset.lastChange = now;
+                    lastChangeTime = now;
                 }
+                
+                // 重新启动定时器
+                startWallpaperTimer();
             }
-        });
+        };
+        
+        // 使用安全的事件监听器添加函数
+        addSafeEventListener(window, 'resize', resizeHandler);
+        addSafeEventListener(document, 'visibilitychange', visibilityHandler);
         
         // 记录初始化时间
-        wallpaperContainer.dataset.lastChange = Date.now();
+        lastChangeTime = Date.now();
+        wallpaperContainer.dataset.lastChange = lastChangeTime;
     }
 
     // 启动壁纸功能
     initWallpaper();
+    
+    // 添加页面卸载时的清理函数
+    const beforeUnloadHandler = function() {
+        // 清除所有定时器
+        if (window.wallpaperResources && window.wallpaperResources.timeouts) {
+            window.wallpaperResources.timeouts.forEach(id => {
+                clearTimeout(id);
+                clearInterval(id); // 同时尝试清除interval，因为可能存储了interval ID
+            });
+            window.wallpaperResources.timeouts.clear();
+        }
+        
+        // 清除所有事件监听器
+        if (window.wallpaperResources && window.wallpaperResources.eventListeners) {
+            window.wallpaperResources.eventListeners.forEach(item => {
+                if (item && item.element && item.type && item.handler) {
+                    item.element.removeEventListener(item.type, item.handler);
+                }
+            });
+            window.wallpaperResources.eventListeners.clear();
+        }
+        
+        // 清除图片加载状态
+        if (imageLoadStatus) {
+            imageLoadStatus.preloaded.clear();
+            imageLoadStatus.loading.clear();
+            imageLoadStatus.loaded.clear();
+            imageLoadStatus.failed.clear();
+        }
+    };
+    
+    // 使用安全的事件监听器添加函数
+    addSafeEventListener(window, 'beforeunload', beforeUnloadHandler);
 });
