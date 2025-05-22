@@ -236,15 +236,17 @@ Allow: /index.html
                     </div>
 
                     <!-- 负面提示词 -->
-                    <div class="content-spacing">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            负面提示词（告诉AI不要生成什么）
+                    <div class="content-spacing relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center justify-between">
+                            <span>负面提示词（告诉AI不要生成什么）</span>
+                            <span class="text-xs text-gray-500">使用英文逗号分隔多个词</span>
                         </label>
                         <textarea
                             id="negativePrompt"
-                            placeholder="例如：模糊, 变形, 低质量..."
-                            class="w-full p-3 text-sm rounded-lg h-14 resize-none shadow-sm"
+                            placeholder="例如：模糊, 变形, 低质量...或点击上方的预设按钮快速选择"
+                            class="w-full p-3 text-sm rounded-lg h-20 resize-none shadow-sm transition-all duration-300"
                         >低质量, 模糊, 变形, 扭曲, 低分辨率, 草图, 不完整, 水印</textarea>
+                        <!-- 预设按钮会由JS自动添加到这个位置 -->
                     </div>
 
                     <!-- 参数设置 -->

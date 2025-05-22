@@ -92,6 +92,55 @@ const promptEnhancements = {
     ]
 };
 
+// 添加负面提示词预设库
+const negativePromptPresets = {
+    general: {
+        name: '通用质量优化',
+        description: '移除常见的图像质量问题，适用于大多数图像',
+        preset: 'worst quality, normal quality, low quality, low res, blurry, distortion, text, watermark, logo, banner, extra digits, cropped, jpeg artifacts, signature, username, error, sketch, duplicate, ugly, monochrome, horror, geometry, mutation, disgusting'
+    },
+    anime: {
+        name: '动漫风格优化',
+        description: '专为动漫风格图像设计的负面提示词',
+        preset: 'bad anatomy, bad hands, three hands, three legs, bad arms, missing legs, missing arms, poorly drawn face, bad face, fused face, cloned face, worst face, out of frame double, three crus, extra crus, fused crus, worst feet, three feet, fused feet, fused thigh, three thigh, extra thigh, worst thigh, missing fingers, extra fingers, ugly fingers, long fingers, horn, extra eyes, huge eyes, 2girl, 2boy'
+    },
+    photo: {
+        name: '真实图像优化',
+        description: '帮助生成更真实自然的图像',
+        preset: 'bad anatomy, bad hands, three hands, three legs, bad arms, missing legs, missing arms, poorly drawn face, poorly rendered hands, bad face, fused face, cloned face, worst face, bad composition, mutated body parts, 3d render, cartoon, anime, illustration, painting, drawing, 3d, unreal'
+    },
+    face: {
+        name: '面部优化',
+        description: '专注于改善面部细节和质量',
+        preset: 'poorly drawn face, bad face, fused face, ugly face, worst face, asymmetrical, unrealistic skin texture, bad proportions, out of frame, poorly drawn hands, cloned face, double face'
+    },
+    hands: {
+        name: '手部优化',
+        description: '避免常见的手部绘制问题',
+        preset: 'extra digits, extra arms, extra hands, fused fingers, malformed limbs, mutated hands, poorly drawn hands, extra fingers, missing hands, bad hands, three hands, fused hands, too many fingers, missing fingers, deformed hands'
+    },
+    eyes: {
+        name: '眼睛优化',
+        description: '专注于改善眼睛细节',
+        preset: 'extra eyes, huge eyes, bad eyes, ugly eyes, oversized eyes, imperfect eyes, deformed pupils, deformed iris, cross-eyed'
+    },
+    portrait: {
+        name: '肖像优化',
+        description: '适用于人物肖像的整体优化',
+        preset: 'bad proportions, asymmetric ears, broken wrist, additional limbs, asymmetric, broken finger, bad anatomy, elongated throat, double face, conjoined, bad face, broken hand, out of frame, disconnected limb, 3d, bad ears, amputee, cross-eyed, disfigured, cartoon, bad eyes, cloned face'
+    },
+    minimal: {
+        name: '最小化优化',
+        description: '仅包含最基本的质量问题修复',
+        preset: 'low quality, low res, blurry, watermark, text, signature, cropped, worst quality'
+    },
+    none: {
+        name: '不使用负面提示词',
+        description: '完全不使用负面提示词',
+        preset: ''
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     const inspirationList = document.getElementById('inspirationList');
     inspirations.forEach(inspiration => {
@@ -175,6 +224,39 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 添加清空按钮
     addClearPromptButton();
+    
+    // 添加负面提示词预设功能
+    addNegativePromptPresets();
+    
+    // 添加样式
+    const negativePromptStyle = document.createElement('style');
+    negativePromptStyle.textContent = `
+        .highlight-animation {
+            animation: highlight-pulse 1s ease-in-out;
+        }
+        
+        @keyframes highlight-pulse {
+            0% { background-color: rgba(96, 165, 250, 0); }
+            50% { background-color: rgba(96, 165, 250, 0.2); }
+            100% { background-color: rgba(96, 165, 250, 0); }
+        }
+        
+        .settings-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            z-index: 1000;
+            max-width: 90vw;
+            width: auto;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+    `;
+    document.head.appendChild(negativePromptStyle);
     
     // 添加公告弹窗
     const announcement = document.createElement('div');
@@ -2024,4 +2106,104 @@ function addClearPromptButton() {
     
     // 将按钮添加到输入框容器
     promptInput.parentElement.appendChild(clearBtn);
+}
+
+// 添加负面提示词预设按钮到负面提示词输入框
+function addNegativePromptPresets() {
+    // 创建预设按钮
+    const negPromptInput = document.getElementById('negativePrompt');
+    if (!negPromptInput) return; // 确保元素存在
+    
+    const presetsBtn = document.createElement('button');
+    presetsBtn.id = 'negativePresetBtn';
+    // 将按钮放在输入框右上角
+    presetsBtn.className = 'absolute right-3 top-0 -translate-y-7 bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm hover:bg-gray-300 transition-colors duration-200 flex items-center';
+    presetsBtn.innerHTML = '📋 负面提示词预设';
+    presetsBtn.title = '选择常用负面提示词预设';
+    presetsBtn.type = 'button';
+    presetsBtn.onclick = showNegativePromptPresets;
+    
+    // 将按钮添加到输入框容器
+    negPromptInput.parentElement.appendChild(presetsBtn);
+}
+
+// 显示负面提示词预设面板
+window.showNegativePromptPresets = function() {
+    // 创建预设面板
+    const presetsPanel = document.createElement('div');
+    presetsPanel.className = 'settings-panel p-6 max-w-2xl';
+    presetsPanel.id = 'negativePresetsPanel';
+    
+    // 面板内容
+    presetsPanel.innerHTML = `
+        <h3 class="text-xl font-bold mb-4">负面提示词预设</h3>
+        <p class="text-sm text-gray-600 mb-4">选择一个预设可直接应用，或点击"添加"按钮将其追加到当前负面提示词后</p>
+        
+        <div class="grid grid-cols-1 gap-3 max-h-[70vh] overflow-y-auto pr-2">
+            ${Object.keys(negativePromptPresets).map(key => {
+                const preset = negativePromptPresets[key];
+                return `
+                    <div class="border rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-medium text-gray-800">${preset.name}</h4>
+                            <div class="flex gap-2">
+                                <button class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700" 
+                                        onclick="applyNegativePreset('${key}', false)">
+                                    应用
+                                </button>
+                                <button class="px-2 py-1 bg-gray-300 text-gray-700 text-xs rounded hover:bg-gray-400" 
+                                        onclick="applyNegativePreset('${key}', true)">
+                                    添加
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 mb-2">${preset.description}</p>
+                        <div class="text-xs bg-gray-100 p-2 rounded max-h-20 overflow-y-auto">
+                            ${preset.preset || '(空)'}
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+        
+        <div class="flex justify-end mt-4">
+            <button onclick="document.getElementById('negativePresetsPanel').remove()" 
+                    class="px-4 py-2 rounded-lg bg-gray-300 text-gray-800 hover:bg-gray-400">
+                关闭
+            </button>
+        </div>
+    `;
+    
+    // 添加到文档中
+    document.body.appendChild(presetsPanel);
+}
+
+// 应用负面提示词预设
+window.applyNegativePreset = function(presetKey, isAppend) {
+    const preset = negativePromptPresets[presetKey];
+    if (!preset) return;
+    
+    const negPromptInput = document.getElementById('negativePrompt');
+    if (!negPromptInput) return;
+    
+    // 获取当前值
+    const currentValue = negPromptInput.value.trim();
+    
+    if (isAppend && currentValue) {
+        // 追加模式：在当前值后添加预设，确保用逗号分隔
+        negPromptInput.value = currentValue + (currentValue.endsWith(',') ? ' ' : ', ') + preset.preset;
+    } else {
+        // 替换模式：直接使用预设
+        negPromptInput.value = preset.preset;
+    }
+    
+    // 关闭面板
+    const panel = document.getElementById('negativePresetsPanel');
+    if (panel) panel.remove();
+    
+    // 视觉反馈
+    negPromptInput.classList.add('highlight-animation');
+    setTimeout(() => {
+        negPromptInput.classList.remove('highlight-animation');
+    }, 1000);
 }
