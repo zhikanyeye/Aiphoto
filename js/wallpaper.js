@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 添加模糊玻璃切换动画 - 降低模糊程度
                 currentLayer.style.filter = 'blur(8px)'; // 从15px降低到8px
                 nextLayer.style.filter = 'blur(0px)';
-                
+            
                 // 添加轻微的缩放效果
                 currentLayer.style.transform = 'scale(1.02)';
                 nextLayer.style.transform = 'scale(1)';
@@ -535,6 +535,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // 启动定时器函数
         function startWallpaperTimer() {
             if (wallpaperTimer === null) {
+                // 首次调用时立即切换一次壁纸（如果距离上次切换超过一定时间）
+                const now = Date.now();
+                if (now - lastChangeTime > changeInterval / 2) {
+                    // 立即执行一次壁纸切换
+                    setTimeout(() => {
+                        changeWallpaper();
+                        lastChangeTime = Date.now();
+                    }, 500);
+                }
+                
                 wallpaperTimer = setInterval(() => {
                     changeWallpaper();
                     lastChangeTime = Date.now();
@@ -543,6 +553,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 记录定时器ID以便清理
                 if (window.wallpaperResources && window.wallpaperResources.timeouts) {
                     window.wallpaperResources.timeouts.add(wallpaperTimer);
+                }
+                
+                // 添加备用定时器，防止主定时器失效 (特别是针对移动设备)
+                if (isMobileDevice()) {
+                    const backupTimer = setTimeout(() => {
+                        // 检查自上次切换以来的时间
+                        const currentTime = Date.now();
+                        const elapsed = currentTime - lastChangeTime;
+                        
+                        // 如果超过了预期的切换间隔的1.5倍，强制切换一次
+                        if (elapsed > changeInterval * 1.5) {
+                            console.log('备用定时器：检测到壁纸长时间未切换，强制执行');
+                            changeWallpaper();
+                            lastChangeTime = Date.now();
+                        }
+                    }, changeInterval * 1.5);
+                    
+                    // 记录备用定时器ID
+                    if (window.wallpaperResources && window.wallpaperResources.timeouts) {
+                        window.wallpaperResources.timeouts.add(backupTimer);
+                    }
                 }
                 
                 // 记录启动时间
@@ -629,6 +660,69 @@ document.addEventListener('DOMContentLoaded', function() {
         addSafeEventListener(window, 'resize', resizeHandler);
         addSafeEventListener(document, 'visibilitychange', visibilityHandler);
         
+        // 添加触摸事件监听器，用于移动设备
+        if (isMobileDevice()) {
+            // 创建触摸事件处理函数
+            const touchHandler = function() {
+                // 检查上次壁纸切换时间
+                const now = Date.now();
+                const timeSinceLastChange = now - lastChangeTime;
+                
+                // 如果超过了2倍的切换间隔，说明定时器可能已失效
+                if (timeSinceLastChange > changeInterval * 2) {
+                    console.log('触摸事件：检测到壁纸长时间未切换，重启切换系统');
+                    
+                    // 停止当前定时器
+                    stopWallpaperTimer();
+                    
+                    // 立即切换一次壁纸
+                    setTimeout(() => {
+                        changeWallpaper();
+                        lastChangeTime = Date.now();
+                        
+                        // 重新启动定时器
+                        startWallpaperTimer();
+                    }, 100);
+                }
+            };
+            
+            // 添加触摸事件监听
+            addSafeEventListener(document, 'touchstart', touchHandler);
+            
+            // 添加额外的稳定性检查定时器
+            const stabilityCheckInterval = setInterval(() => {
+                if (!document.hidden) {  // 只在页面可见时检查
+                    const now = Date.now();
+                    const timeSinceLastChange = now - lastChangeTime;
+                    
+                    // 如果超过了2倍的切换间隔，说明定时器可能已失效
+                    if (timeSinceLastChange > changeInterval * 2) {
+                        console.log('稳定性检查：检测到壁纸长时间未切换，重启切换系统');
+                        
+                        // 停止所有定时器
+                        stopWallpaperTimer();
+                        
+                        // 立即切换一次壁纸
+                        setTimeout(() => {
+                            changeWallpaper();
+                            lastChangeTime = Date.now();
+                            
+                            // 重新启动定时器
+                            startWallpaperTimer();
+                        }, 200);
+                    }
+                }
+            }, 45000);  // 每45秒检查一次系统稳定性
+            
+            // 将稳定性检查定时器添加到资源池
+            if (window.wallpaperResources) {
+                if (!window.wallpaperResources.intervals) {
+                    window.wallpaperResources.intervals = new Set();
+                }
+                window.wallpaperResources.intervals.add(stabilityCheckInterval);
+            }
+        }
+        
         // 记录初始化时间
         lastChangeTime = Date.now();
         wallpaperContainer.dataset.lastChange = lastChangeTime;
@@ -648,6 +742,14 @@ document.addEventListener('DOMContentLoaded', function() {
             window.wallpaperResources.timeouts.clear();
         }
         
+        // 清除所有周期性定时器
+        if (window.wallpaperResources && window.wallpaperResources.intervals) {
+            window.wallpaperResources.intervals.forEach(id => {
+                clearInterval(id);
+            });
+            window.wallpaperResources.intervals.clear();
+        }
+        
         // 清除所有事件监听器
         if (window.wallpaperResources && window.wallpaperResources.eventListeners) {
             window.wallpaperResources.eventListeners.forEach(item => {
@@ -664,6 +766,15 @@ document.addEventListener('DOMContentLoaded', function() {
             imageLoadStatus.loading.clear();
             imageLoadStatus.loaded.clear();
             imageLoadStatus.failed.clear();
+        }
+        
+        // 停止壁纸定时器
+        if (typeof stopWallpaperTimer === 'function') {
+            try {
+                stopWallpaperTimer();
+            } catch (e) {
+                console.error('停止壁纸定时器时出错:', e);
+            }
         }
     };
     
