@@ -2015,8 +2015,8 @@ function addClearPromptButton() {
     const promptInput = document.getElementById('prompt');
     const clearBtn = document.createElement('button');
     clearBtn.id = 'clearPromptBtn';
-    // 将按钮放在输入框左下角但靠右一些，以便与现有的AI助手优化按钮并排显示
-    clearBtn.className = 'absolute left-20 bottom-3 bg-gray-200 text-gray-600 px-2 py-1 rounded text-sm hover:bg-gray-300 hover:text-red-600 transition-colors duration-200';
+    // 将按钮放在输入框右下角
+    clearBtn.className = 'absolute right-3 bottom-3 bg-gray-200 text-gray-600 px-2 py-1 rounded text-sm hover:bg-gray-300 hover:text-red-600 transition-colors duration-200';
     clearBtn.innerHTML = '🗑️ 清空';
     clearBtn.title = '清空输入框内容';
     clearBtn.type = 'button';
