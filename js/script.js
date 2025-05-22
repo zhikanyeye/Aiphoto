@@ -173,6 +173,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 添加提示词优化器
     addPromptEnhancer();
     
+    // 添加清空按钮
+    addClearPromptButton();
+    
     // 添加公告弹窗
     const announcement = document.createElement('div');
     announcement.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 md:p-6 rounded-lg shadow-2xl z-50 max-w-md w-[90%] md:w-full mx-auto animate-fade-in';
@@ -1980,4 +1983,45 @@ function initializeTooltips() {
             tooltip.classList.toggle('hidden');
         });
     });
+}
+
+// 清空输入框内容的函数
+window.clearPromptInput = function() {
+    const promptInput = document.getElementById('prompt');
+    promptInput.value = '';
+    // 重置数据属性
+    promptInput.dataset.enhancements = '';
+    promptInput.dataset.aiEnhancedEnglish = '';
+    
+    // 显示提示
+    const promptHint = document.getElementById('promptHint');
+    if (promptHint) {
+        promptHint.style.opacity = '0.7';
+    }
+    
+    // 提供视觉反馈
+    const clearBtn = document.getElementById('clearPromptBtn');
+    if (clearBtn) {
+        clearBtn.classList.add('animate-pulse');
+        setTimeout(() => {
+            clearBtn.classList.remove('animate-pulse');
+        }, 500);
+    }
+}
+
+// 添加清空按钮到输入框
+function addClearPromptButton() {
+    // 创建清空按钮
+    const promptInput = document.getElementById('prompt');
+    const clearBtn = document.createElement('button');
+    clearBtn.id = 'clearPromptBtn';
+    // 将按钮放在输入框左下角但靠右一些，以便与现有的AI助手优化按钮并排显示
+    clearBtn.className = 'absolute left-20 bottom-3 bg-gray-200 text-gray-600 px-2 py-1 rounded text-sm hover:bg-gray-300 hover:text-red-600 transition-colors duration-200';
+    clearBtn.innerHTML = '🗑️ 清空';
+    clearBtn.title = '清空输入框内容';
+    clearBtn.type = 'button';
+    clearBtn.onclick = clearPromptInput;
+    
+    // 将按钮添加到输入框容器
+    promptInput.parentElement.appendChild(clearBtn);
 }

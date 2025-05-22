@@ -497,6 +497,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     function adjustBackgroundPosition() {
+                        if (img.width === 0 || img.height === 0) {
+                            console.warn("AdjustBackgroundPosition: Image dimensions not available for", imgUrl);
+                            return; 
+                        }
                         const imgRatio = img.width / img.height,
                     screenRatio = window.innerWidth / window.innerHeight;
                     
