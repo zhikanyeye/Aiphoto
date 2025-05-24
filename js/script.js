@@ -255,6 +255,17 @@ document.addEventListener('DOMContentLoaded', function() {
             overflow-y: auto;
             max-height: 90vh;
         }
+        
+        @media (max-width: 640px) {
+            .settings-panel {
+                width: 95% !important;
+                padding: 1rem !important;
+            }
+            
+            #aiEnhancedResultPanel, #negativePresetsPanel, #promptEnhancerPanel {
+                width: 95% !important;
+            }
+        }
     `;
     document.head.appendChild(negativePromptStyle);
     
@@ -542,7 +553,7 @@ window.showPromptEnhancer = function() {
     
     // 创建优化面板
     const enhancerPanel = document.createElement('div');
-    enhancerPanel.className = 'settings-panel p-6';
+    enhancerPanel.className = 'settings-panel p-6 max-w-3xl w-[95%] sm:w-[85%] md:w-auto';
     enhancerPanel.id = 'promptEnhancerPanel';
     
     // 面板内容
@@ -868,8 +879,8 @@ async function aiEnhancePrompt() {
     
     // 创建结果展示面板
     const resultPanel = document.createElement('div');
-    resultPanel.className = 'settings-panel p-6';
     resultPanel.id = 'aiEnhancedResultPanel';
+    resultPanel.className = 'settings-panel p-6 max-w-3xl w-[95%] sm:w-[85%] md:w-auto';
     
     // 面板内容
     resultPanel.innerHTML = `
@@ -2131,7 +2142,7 @@ function addNegativePromptPresets() {
 window.showNegativePromptPresets = function() {
     // 创建预设面板
     const presetsPanel = document.createElement('div');
-    presetsPanel.className = 'settings-panel p-6 max-w-2xl';
+    presetsPanel.className = 'settings-panel p-6 max-w-3xl w-[95%] sm:w-[85%] md:w-auto';
     presetsPanel.id = 'negativePresetsPanel';
     
     // 面板内容
