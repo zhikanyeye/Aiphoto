@@ -8,7 +8,7 @@
 
 **🤖 智能绘画生成器 | 让创意触手可及**
 
-[🌐 在线体验](https://qiyimg.3d.tc/Aiphoto/) | [📖 使用文档](#使用方法) | [🚀 快速部署](#项目部署) | [💬 反馈建议](https://github.com/zhikanyeye/Aiphoto/issues)
+[🌐 在线体验](https://qiyimg.3d.tc/Aiphoto/) | [📖 使用文档](#-使用指南) | [🚀 快速部署](#-快速开始) | [💬 反馈建议](https://github.com/zhikanyeye/Aiphoto/issues)
 
 </div>
 
@@ -121,6 +121,32 @@ python -m http.server 8000
 **安全说明**：所有 API 密钥均采用本地加密存储，保障您的数据安全。
 
 </details>
+
+## 🎛️ 项目部署
+
+### GitHub Pages部署（推荐）
+1. 将项目Fork或推送到你自己的GitHub仓库
+2. 进入仓库设置 (Settings)
+3. 在左侧菜单找到Pages
+4. 在"Source"部分选择"Deploy from a branch"
+5. 选择"main"分支和"/(root)"目录
+6. 点击"Save"后，等待几分钟即可通过提供的URL访问网站
+
+### 本地部署
+1. 将项目克隆到本地：`git clone https://github.com/zhikanyeye/Aiphoto.git`
+2. 直接在浏览器中打开`index.html`文件即可使用
+3. 也可使用简单的HTTP服务器（如Python的`http.server`）托管：
+   ```
+   python -m http.server
+   ```
+   然后访问 http://localhost:8000
+
+### 其他托管服务
+本项目是纯静态网站，可部署在任何支持静态网站的服务上，例如：
+- Netlify
+- Vercel
+- Cloudflare Pages
+- Amazon S3
 
 ## 🤝 贡献指南
 
