@@ -1127,14 +1127,10 @@ let lastGenerationParams = {
     width: '',
     height: '',
     count: 1,
-    steps: 50,
-    cfgScale: 7,
+    imageModel: 'flux',
     negativePrompt: '',
     translatedNegativePrompt: '',
     seed: '',
-    sampler: 'euler_a',
-    noise: 0.2,
-    styleStrength: 0.6,
     qualityTags: []
 };
 
@@ -1183,6 +1179,89 @@ async function translateNegativePrompt(negativePrompt) {
     return allTerms.join(', ');
 }
 
+// AI 提示词增强函数
+async function enhancePrompt() {
+    const promptInput = document.getElementById('prompt');
+    const originalPrompt = promptInput.value.trim();
+    
+    if (!originalPrompt) {
+        showMessage('请先输入提示词', 'warning');
+        return;
+    }
+    
+    // 显示加载状态
+    const enhanceBtn = document.getElementById('enhanceBtn');
+    const originalBtnText = enhanceBtn.innerHTML;
+    enhanceBtn.innerHTML = '🔄 正在优化...';
+    enhanceBtn.disabled = true;
+    
+    const apiStatusMessage = document.getElementById('apiStatusMessage');
+    const originalStatusText = apiStatusMessage.textContent;
+    apiStatusMessage.textContent = '🤖 正在通过Pollinations AI优化提示词...';
+    
+    try {
+        // 调用 Pollinations 文本 API
+        const systemPrompt = "You are a professional AI art prompt engineer. Convert the user's idea (in any language) into a detailed, high-quality English prompt for image generation. Include specific details about composition, lighting, style, colors, and atmosphere. Keep it concise but descriptive.";
+        
+        const response = await fetch('https://text.pollinations.ai/openai', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'gemini',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: `Original idea: ${originalPrompt}\n\nCreate an enhanced English prompt for image generation:` }
+                ],
+                temperature: 0.7,
+                max_tokens: 300
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API 响应错误: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const enhancedPrompt = data.choices[0].message.content.trim();
+        
+        // 更新提示词输入框
+        promptInput.value = enhancedPrompt;
+        apiStatusMessage.textContent = '✅ 提示词已优化！';
+        
+        // 延迟清除状态消息
+        setTimeout(() => {
+            apiStatusMessage.textContent = originalStatusText;
+        }, 3000);
+        
+    } catch (error) {
+        console.error('提示词增强失败:', error);
+        apiStatusMessage.textContent = '❌ 优化失败，请重试';
+        
+        setTimeout(() => {
+            apiStatusMessage.textContent = originalStatusText;
+        }, 3000);
+    } finally {
+        enhanceBtn.innerHTML = originalBtnText;
+        enhanceBtn.disabled = false;
+    }
+}
+
+// 显示消息的辅助函数
+function showMessage(message, type = 'info') {
+    const apiStatusMessage = document.getElementById('apiStatusMessage');
+    if (apiStatusMessage) {
+        apiStatusMessage.textContent = message;
+        apiStatusMessage.className = `text-sm mt-1 h-5 ${type === 'warning' ? 'text-yellow-600' : type === 'error' ? 'text-red-600' : 'text-gray-500'}`;
+        
+        setTimeout(() => {
+            apiStatusMessage.textContent = '';
+            apiStatusMessage.className = 'text-sm text-gray-500 mt-1 h-5';
+        }, 3000);
+    }
+}
+
 // 修改generateImage函数，优化图片加载和预览功能
 async function generateImage() {
     const basePrompt = document.getElementById('prompt').value;
@@ -1202,26 +1281,18 @@ async function generateImage() {
     const qualityTags = getSelectedTags('qualityTags');
     const [width, height] = document.getElementById('aspectRatio').value.split(':');
     const count = parseInt(document.getElementById('generateCount').value);
-    const steps = document.getElementById('steps').value;
-    const cfgScale = document.getElementById('cfgScale').value;
+    const selectedModel = document.getElementById('imageModel').value; // 新增：获取选择的模型
     const negativePrompt = document.getElementById('negativePrompt').value;
     const userSeedInputValue = document.getElementById('seed').value;
-    const sampler = document.getElementById('sampler').value;
-    const noise = document.getElementById('noise').value;
-    const styleStrength = document.getElementById('styleStrength').value;
     
     // 更新参数缓存
     lastGenerationParams.prompt = basePrompt;
     lastGenerationParams.width = width;
     lastGenerationParams.height = height;
     lastGenerationParams.count = count;
-    lastGenerationParams.steps = steps;
-    lastGenerationParams.cfgScale = cfgScale;
+    lastGenerationParams.imageModel = selectedModel;
     lastGenerationParams.negativePrompt = negativePrompt;
     lastGenerationParams.seed = userSeedInputValue;
-    lastGenerationParams.sampler = sampler;
-    lastGenerationParams.noise = noise;
-    lastGenerationParams.styleStrength = styleStrength;
     lastGenerationParams.qualityTags = qualityTags;
     
     // 状态消息处理
@@ -1325,11 +1396,8 @@ async function generateImage() {
                 currentSeed = Date.now() + Math.floor(Math.random() * 1000000) + i; // 添加i以增加唯一性
             }
             
-            // 构建每个图像的URL及其唯一种子
-            let url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?seed=${currentSeed}&width=${width}&height=${height}&steps=${steps}&cfg_scale=${cfgScale}&nologo=true`;
-            
-            // 添加新的参数
-            url += `&sampler=${sampler}&noise_strength=${noise}&style_strength=${styleStrength}`;
+            // 构建新的 API URL（使用最新的 Pollinations API 格式）
+            let url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?model=${selectedModel}&width=${width}&height=${height}&seed=${currentSeed}&nologo=true`;
             
             if (translatedNegativePrompt) {
                 url += `&negative_prompt=${encodeURIComponent(translatedNegativePrompt)}`;
@@ -1353,7 +1421,7 @@ async function generateImage() {
             infoBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
             infoBtn.onclick = (e) => {
                 e.stopPropagation();
-                alert(`图像参数信息:\n种子: ${currentSeed}\n采样步数: ${steps}\nCFG Scale: ${cfgScale}\n采样方法: ${sampler}\n噪声强度: ${noise}\n风格强度: ${styleStrength}\n提示词: ${basePrompt}`);
+                alert(`图像参数信息:\n模型: ${selectedModel}\n种子: ${currentSeed}\n尺寸: ${width}x${height}\n提示词: ${basePrompt}`);
             };
 
             const loadingDiv = document.createElement('div');

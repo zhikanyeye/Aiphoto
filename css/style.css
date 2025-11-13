@@ -276,4 +276,25 @@ textarea, input, select {
 /* 按钮统一样式 */
 button {
     transition: all 0.2s ease;
+}
+
+/* AI 增强按钮动画 */
+#enhanceBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#enhanceBtn:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
+/* 模型选择器样式 */
+#imageModel {
+    transition: all 0.3s ease;
+}
+
+#imageModel:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 } 
