@@ -1398,14 +1398,32 @@ async function generateImage() {
             
             // 检查是否使用图生图模式
             if (generationMode === 'image-to-image') {
-                // 图生图模式 - 先上传图片到sm.ms图床，获取公网URL
-                const imageUrl = await uploadImageToSMMS(referenceImageFile);
+                // 图生图模式 - 尝试优先使用本地文件上传到 sm.ms 获取公网 URL
+                // 如果没有本地文件或上传失败，则回退为用户粘贴的公网 URL
+                let imageUrl = null;
+                if (referenceImageFile) {
+                    console.log('尝试将上传的图片发送到 sm.ms');
+                    imageUrl = await uploadImageToSMMS(referenceImageFile);
+                    if (!imageUrl) console.warn('sm.ms 上传返回空，尝试使用用户提供的公网 URL 回退');
+                }
+
+                // 如果上传失败或没有文件，尝试使用用户手动输入的公网图片 URL
                 if (!imageUrl) {
-                    alert('图片上传失败，无法进行图生图转换');
+                    const fallbackInput = document.getElementById('referenceImageUrlInput');
+                    const fallbackUrl = fallbackInput ? fallbackInput.value.trim() : '';
+                    if (fallbackUrl && (fallbackUrl.startsWith('http://') || fallbackUrl.startsWith('https://'))) {
+                        imageUrl = fallbackUrl;
+                        console.log('使用用户提供的公网图片 URL 作为 image 参数：', imageUrl);
+                    }
+                }
+
+                if (!imageUrl) {
+                    alert('图片转换需要一个可访问的公网图片 URL。请上传图片或粘贴一张可直接访问的图片 URL（例如 https://...）作为回退。');
                     generateBtn.disabled = false;
                     generateBtn.textContent = '🎨 生成图片';
                     return;
                 }
+
                 url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?model=kontext&image=${encodeURIComponent(imageUrl)}&seed=${currentSeed}&width=${width}&height=${height}&nologo=true`;
             } else {
                 // 文生图模式 - 使用选择的模型
@@ -2407,6 +2425,9 @@ window.clearReferenceImage = function() {
     const previewImg = document.getElementById('previewImg');
     
     if (referenceImageInput) referenceImageInput.value = '';
+    const fallbackInput = document.getElementById('referenceImageUrlInput');
+    if (fallbackInput) fallbackInput.value = '';
+    referenceImageFile = null;
     if (imagePreview) imagePreview.classList.add('hidden');
     if (previewImg) previewImg.src = '';
 }

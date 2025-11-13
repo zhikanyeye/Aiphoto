@@ -305,6 +305,8 @@ Allow: /index.html
                                 选择图片
                             </button>
                             <p class="mt-2 text-sm text-gray-600">支持 JPG, PNG, WebP 格式</p>
+                            <p class="mt-2 text-sm text-gray-500">如果上传失败，可粘贴一张公网图片 URL 作为回退（例如 GitHub、Imgur 等可直接访问的图片链接）。</p>
+                            <input type="url" id="referenceImageUrlInput" placeholder="可选：粘贴图片公网 URL" class="mt-3 w-full p-2 border rounded" aria-label="图片公网URL输入">
                             <div id="imagePreview" class="mt-4 hidden">
                                 <img id="previewImg" class="max-w-full max-h-64 rounded-lg shadow-md" alt="预览图片">
                                 <button type="button" onclick="clearReferenceImage()" class="mt-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
