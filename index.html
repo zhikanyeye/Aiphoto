@@ -255,7 +255,7 @@ Allow: /index.html
                             <label class="block mb-2 text-sm font-medium text-gray-700">
                                 图片尺寸 (分辨率)
                             </label>
-                            <select id="aspectRatio" class="p-3 rounded-lg w-full shadow-sm">
+                            <select id="aspectRatio" class="p-3 rounded-lg w-full shadow-sm" title="选择图片尺寸和分辨率" aria-label="图片尺寸选择">
                                 <option value="1024:1024">1024x1024 (1:1 正方形)</option>
                                 <option value="1280:720">1280x720 (16:9 横屏 HD)</option>
                                 <option value="1920:1080">1920x1080 (16:9 横屏 Full HD)</option>
@@ -267,11 +267,69 @@ Allow: /index.html
                             <label class="block mb-2 text-sm font-medium text-gray-700">
                                 生成数量
                             </label>
-                            <select id="generateCount" class="p-3 rounded-lg w-full shadow-sm">
+                            <select id="generateCount" class="p-3 rounded-lg w-full shadow-sm" title="选择生成图片数量" aria-label="生成数量选择">
                                 <option value="1">生成 1 张</option>
                                 <option value="2">生成 2 张</option>
                                 <option value="4">生成 4 张</option>
                             </select>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                AI 模型
+                            </label>
+                            <select id="aiModel" class="p-3 rounded-lg w-full shadow-sm" title="选择AI生成模型" aria-label="AI模型选择">
+                                <option value="flux">Flux (高质量,默认)</option>
+                                <option value="turbo">Turbo (快速生成)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                生成模式
+                            </label>
+                            <select id="generationMode" class="p-3 rounded-lg w-full shadow-sm" title="选择生成模式" aria-label="生成模式选择">
+                                <option value="text-to-image">文字生成图片</option>
+                                <option value="image-to-image">图片转换</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 图片上传区域 (图生图模式) -->
+                    <div id="imageUploadSection" class="mb-4 p-4 md:p-5 bg-blue-50 rounded-lg shadow-sm content-spacing hidden">
+                        <h3 class="text-lg font-medium mb-3 text-blue-800">📸 上传参考图片</h3>
+                        <p class="text-sm text-blue-700 mb-3">
+                            💡 提示: 上传一张图片，然后用文字描述你想要的转换效果，例如"转换为水彩画风格"、"变成卡通风格"等
+                        </p>
+                        <div class="flex flex-col items-center justify-center border-2 border-dashed border-blue-300 rounded-lg p-6 bg-white">
+                            <input type="file" id="referenceImage" accept="image/*" class="hidden" aria-label="上传参考图片">
+                            <button type="button" onclick="document.getElementById('referenceImage').click()" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all">
+                                选择图片
+                            </button>
+                            <p class="mt-2 text-sm text-gray-600">支持 JPG, PNG, WebP 格式</p>
+                            <div id="imagePreview" class="mt-4 hidden">
+                                <img id="previewImg" class="max-w-full max-h-64 rounded-lg shadow-md" alt="预览图片">
+                                <button type="button" onclick="clearReferenceImage()" class="mt-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
+                                    清除图片
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API 功能选项 -->
+                    <div class="mb-4 p-4 md:p-5 bg-green-50 rounded-lg shadow-sm content-spacing">
+                        <h3 class="text-lg font-medium mb-3 text-green-800">🎯 API 增强选项</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="enhancePrompt" class="w-4 h-4 text-green-600 rounded" title="使用AI自动优化提示词">
+                                <span class="text-sm text-gray-700">自动增强提示词</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="privateMode" class="w-4 h-4 text-green-600 rounded" title="生成的图片不会被公开展示">
+                                <span class="text-sm text-gray-700">隐私模式</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="safeMode" class="w-4 h-4 text-green-600 rounded" title="启用内容安全过滤">
+                                <span class="text-sm text-gray-700">安全过滤</span>
+                            </label>
                         </div>
                     </div>
 
@@ -282,14 +340,14 @@ Allow: /index.html
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">采样步数</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="采样步数决定AI生成图像的精细程度。步数越高，图像细节越丰富，但生成时间也越长。推荐值：30-70步">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="采样步数决定AI生成图像的精细程度。步数越高，图像细节越丰富，但生成时间也越长。推荐值：30-70步" title="查看采样步数说明" aria-label="采样步数帮助">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
                                     <div class="tooltip hidden">采样步数决定AI生成图像的精细程度。步数越高，图像细节越丰富，但生成时间也越长。推荐值：30-70步</div>
                                 </div>
-                                <input type="range" id="steps" min="20" max="150" value="50" 
+                                <input type="range" id="steps" min="20" max="150" value="50" title="调整采样步数" aria-label="采样步数"
                                     class="w-full" onchange="updateStepsValue(this.value)">
                                 <span id="stepsValue" class="text-sm">50</span>
                             </div>
@@ -297,14 +355,14 @@ Allow: /index.html
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">CFG Scale</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="CFG Scale控制AI对提示词的遵循程度。值越高，图像越符合提示词描述，但创意性可能降低；值越低，创意性越强但可能偏离提示词。推荐值：7-9">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="CFG Scale控制AI对提示词的遵循程度。值越高，图像越符合提示词描述，但创意性可能降低；值越低，创意性越强但可能偏离提示词。推荐值：7-9" title="查看CFG Scale说明" aria-label="CFG Scale帮助">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
                                     <div class="tooltip hidden">CFG Scale控制AI对提示词的遵循程度。值越高，图像越符合提示词描述，但创意性可能降低；值越低，创意性越强但可能偏离提示词。推荐值：7-9</div>
                                 </div>
-                                <input type="range" id="cfgScale" min="1" max="20" value="7" step="0.5"
+                                <input type="range" id="cfgScale" min="1" max="20" value="7" step="0.5" title="调整CFG Scale" aria-label="CFG Scale"
                                     class="w-full" onchange="updateCfgValue(this.value)">
                                 <span id="cfgValue" class="text-sm">7</span>
                             </div>
@@ -312,28 +370,27 @@ Allow: /index.html
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">随机种子</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="种子值决定图像的初始随机状态。使用相同的种子值和参数可以生成相似的图像。留空则每次生成随机种子。记录喜欢的图像的种子值可以帮助您重现类似效果">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="种子值决定图像的初始随机状态。使用相同的种子值和参数可以生成相似的图像。留空则每次生成随机种子。记录喜欢的图像的种子值可以帮助您重现类似效果" title="查看随机种子说明" aria-label="随机种子帮助">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
                                     <div class="tooltip hidden">种子值决定图像的初始随机状态。使用相同的种子值和参数可以生成相似的图像。留空则每次生成随机种子。记录喜欢的图像的种子值可以帮助您重现类似效果</div>
                                 </div>
-                                <input type="number" id="seed" class="w-full px-2 py-1 rounded border"
-                                    placeholder="留空则随机">
+                                <input type="number" id="seed" class="w-full px-2 py-1 rounded border" title="输入随机种子值" aria-label="随机种子" placeholder="留空则随机">
                             </div>
                             
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">采样方法</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="不同的采样方法会产生不同风格的图像。Euler a适合创意性强的图像；DDIM生成更稳定可控的结果；DPM++生成细节丰富的高质量图像">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="不同的采样方法会产生不同风格的图像。Euler a适合创意性强的图像；DDIM生成更稳定可控的结果；DPM++生成细节丰富的高质量图像" title="查看采样方法说明" aria-label="采样方法帮助">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
                                     <div class="tooltip hidden">不同的采样方法会产生不同风格的图像。Euler a适合创意性强的图像；DDIM生成更稳定可控的结果；DPM++生成细节丰富的高质量图像</div>
                                 </div>
-                                <select id="sampler" class="w-full px-2 py-1 rounded border">
+                                <select id="sampler" class="w-full px-2 py-1 rounded border" title="选择采样方法" aria-label="采样方法">
                                     <option value="euler_a">Euler a (创意性强)</option>
                                     <option value="ddim">DDIM (稳定可控)</option>
                                     <option value="dpm++">DPM++ (细节丰富)</option>
@@ -344,14 +401,14 @@ Allow: /index.html
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">噪声强度</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="噪声强度影响图像的随机性和纹理。较高的值会产生更多的纹理细节和随机性，较低的值则产生更平滑的结果">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="噪声强度影响图像的随机性和纹理。较高的值会产生更多的纹理细节和随机性，较低的值则产生更平滑的结果" title="查看噪声强度说明" aria-label="噪声强度帮助">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
                                     <div class="tooltip hidden">噪声强度影响图像的随机性和纹理。较高的值会产生更多的纹理细节和随机性，较低的值则产生更平滑的结果</div>
                                 </div>
-                                <input type="range" id="noise" min="0" max="1" value="0.2" step="0.05"
+                                <input type="range" id="noise" min="0" max="1" value="0.2" step="0.05" title="调整噪声强度" aria-label="噪声强度"
                                     class="w-full" onchange="updateNoiseValue(this.value)">
                                 <span id="noiseValue" class="text-sm">0.2</span>
                             </div>
@@ -359,14 +416,14 @@ Allow: /index.html
                             <div class="relative">
                                 <div class="flex items-center">
                                     <label class="block text-sm font-medium mb-1 text-gray-700">风格强度</label>
-                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="风格强度控制AI应用艺术风格的程度。较高的值会使风格特征更明显，较低的值则更接近写实">
+                                    <button type="button" class="ml-2 text-gray-500 hover:text-gray-700 param-help" data-tooltip="风格强度控制AI应用艺术风格的程度。较高的值会使风格特征更明显，较低的值则更接近写实" title="查看风格强度说明" aria-label="风格强度帮助">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
                                     <div class="tooltip hidden">风格强度控制AI应用艺术风格的程度。较高的值会使风格特征更明显，较低的值则更接近写实</div>
                                 </div>
-                                <input type="range" id="styleStrength" min="0" max="1" value="0.6" step="0.05"
+                                <input type="range" id="styleStrength" min="0" max="1" value="0.6" step="0.05" title="调整风格强度" aria-label="风格强度"
                                     class="w-full" onchange="updateStyleValue(this.value)">
                                 <span id="styleValue" class="text-sm">0.6</span>
                             </div>
@@ -407,7 +464,7 @@ Allow: /index.html
     <script src="js/wallpaper.js" defer></script>
     
     <!-- 添加反爬虫蜜罐链接和混淆元素 -->
-    <div style="display:none">
+    <div class="hidden-content">
         <a href="/admin" rel="nofollow">Admin Panel</a>
         <a href="/login" rel="nofollow">Login</a>
         <a href="/sitemap.xml" rel="nofollow">Sitemap</a>
@@ -415,7 +472,7 @@ Allow: /index.html
     </div>
     
     <!-- 添加混淆标签使爬虫难以识别关键内容 -->
-    <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;" class="crawler-trap">
+    <div aria-hidden="true" class="crawler-trap">
         <span data-value="image-generator">关键词图像生成器</span>
         <span data-value="api-key">密钥设置</span>
         <span data-value="prompt-input">提示词输入</span>

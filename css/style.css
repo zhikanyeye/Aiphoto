@@ -11,8 +11,8 @@ body {
 
 .card {
     background: rgba(255,255,255,0.7); /* 降低透明度，从0.85改为0.7 */
-    backdrop-filter: blur(8px); /* 减少模糊程度，从10px改为8px */
     -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px); /* 减少模糊程度，从10px改为8px */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.3); /* 增加边框透明度 */
     transition: all 0.3s ease;
@@ -200,6 +200,7 @@ textarea, input, select {
 #promptHint {
     transition: opacity 0.3s ease-in-out;
     pointer-events: none;
+    -webkit-user-select: none;
     user-select: none;
     z-index: 5;
 }
@@ -224,8 +225,8 @@ textarea, input, select {
     line-height: 1.4;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     transition: opacity 0.3s;
-    backdrop-filter: blur(5px); /* 添加模糊效果 */
     -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px); /* 添加模糊效果 */
 }
 
 .tooltip::before {
@@ -252,8 +253,8 @@ textarea, input, select {
     max-width: 500px;
     border-radius: 1.5rem; /* 保持设置面板圆角 */
     background-color: rgba(255, 255, 255, 0.75); /* 降低透明度，从0.9改为0.75 */
-    backdrop-filter: blur(10px); /* 减少模糊程度，从15px改为10px */
     -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px); /* 减少模糊程度，从15px改为10px */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.4); /* 增加边框透明度 */
 }
@@ -276,4 +277,15 @@ textarea, input, select {
 /* 按钮统一样式 */
 button {
     transition: all 0.2s ease;
-} 
+}
+
+/* 反爬虫和混淆元素样式 */
+.hidden-content {
+    display: none;
+}
+
+.crawler-trap {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+}

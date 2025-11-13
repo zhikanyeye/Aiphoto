@@ -46,6 +46,15 @@
     }
 })();
 
+// 图片缓存和性能优化
+const imageCache = new Map();
+const requestQueue = [];
+let isProcessingQueue = false;
+
+// 图生图相关变量
+let referenceImageData = null;
+let referenceImageUrl = null;
+
 const inspirations = [
     '🐼 宇宙飞行员在月球上种竹子 | astronaut planting bamboo on the moon',
     '🎨 水彩画风格的彩虹独角兽 | watercolor style rainbow unicorn',
@@ -1210,6 +1219,21 @@ async function generateImage() {
     const noise = document.getElementById('noise').value;
     const styleStrength = document.getElementById('styleStrength').value;
     
+    // 新增: 获取新的 API 参数
+    const aiModel = document.getElementById('aiModel').value;
+    const enhancePrompt = document.getElementById('enhancePrompt').checked;
+    const privateMode = document.getElementById('privateMode').checked;
+    const safeMode = document.getElementById('safeMode').checked;
+    const generationMode = document.getElementById('generationMode').value;
+    
+    // 验证图生图模式
+    if (generationMode === 'image-to-image' && !referenceImageUrl) {
+        alert('图片转换模式需要上传参考图片！');
+        generateBtn.disabled = false;
+        generateBtn.textContent = '🎨 生成图片';
+        return;
+    }
+    
     // 更新参数缓存
     lastGenerationParams.prompt = basePrompt;
     lastGenerationParams.width = width;
@@ -1223,6 +1247,11 @@ async function generateImage() {
     lastGenerationParams.noise = noise;
     lastGenerationParams.styleStrength = styleStrength;
     lastGenerationParams.qualityTags = qualityTags;
+    lastGenerationParams.aiModel = aiModel;
+    lastGenerationParams.enhancePrompt = enhancePrompt;
+    lastGenerationParams.privateMode = privateMode;
+    lastGenerationParams.safeMode = safeMode;
+    lastGenerationParams.generationMode = generationMode;
     
     // 状态消息处理
     const apiStatusMessage = document.getElementById('apiStatusMessage');
@@ -1326,13 +1355,56 @@ async function generateImage() {
             }
             
             // 构建每个图像的URL及其唯一种子
-            let url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?seed=${currentSeed}&width=${width}&height=${height}&steps=${steps}&cfg_scale=${cfgScale}&nologo=true`;
+            let url;
             
-            // 添加新的参数
-            url += `&sampler=${sampler}&noise_strength=${noise}&style_strength=${styleStrength}`;
+            // 检查是否使用图生图模式
+            if (generationMode === 'image-to-image') {
+                // 图生图模式 - 使用 kontext 模型
+                // 注意: 由于 Pollinations 需要公开可访问的图片URL,
+                // 我们使用 base64 data URL (某些API支持) 或需要先上传图片到图床
+                // 这里我们尝试使用 base64 (如果API不支持,用户需要提供公开URL)
+                const imageParam = referenceImageData || referenceImageUrl;
+                url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?model=kontext&image=${encodeURIComponent(imageParam)}&seed=${currentSeed}&width=${width}&height=${height}&nologo=true`;
+            } else {
+                // 文生图模式 - 使用选择的模型
+                url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?model=${aiModel}&seed=${currentSeed}&width=${width}&height=${height}&steps=${steps}&cfg_scale=${cfgScale}&nologo=true`;
+                
+                // 添加采样器和强度参数
+                url += `&sampler=${sampler}&noise_strength=${noise}&style_strength=${styleStrength}`;
+            }
+            
+            // 添加通用参数
+            if (enhancePrompt) {
+                url += '&enhance=true';
+            }
+            if (privateMode) {
+                url += '&private=true';
+            }
+            if (safeMode) {
+                url += '&safe=true';
+            }
             
             if (translatedNegativePrompt) {
                 url += `&negative_prompt=${encodeURIComponent(translatedNegativePrompt)}`;
+            }
+            
+            // 检查缓存
+            const cacheParams = {
+                prompt: fullPrompt,
+                seed: currentSeed,
+                width, height, steps, cfgScale,
+                sampler, noise, styleStrength,
+                model: generationMode === 'image-to-image' ? 'kontext' : aiModel,
+                referenceImage: generationMode === 'image-to-image' ? referenceImageUrl : null
+            };
+            
+            const cachedUrl = getFromCache(cacheParams);
+            if (cachedUrl) {
+                console.log('使用缓存的图片');
+                url = cachedUrl;
+            } else {
+                // 保存到缓存
+                saveToCache(cacheParams, url);
             }
             
             const previewDiv = document.createElement('div');
@@ -1371,33 +1443,32 @@ async function generateImage() {
             previewDiv.appendChild(loadingDiv);
             previewContainer.appendChild(previewDiv);
 
-            img.onload = () => {
-                loadingDiv.remove();
-                img.style.opacity = '1';
-                // 设置图片预览功能
-                setupImagePreview(img);
-            };
-
-            img.onerror = () => {
-                loadingDiv.innerHTML = `
-                    <div class="text-red-500 p-2 text-center">
-                        <p class="font-semibold">图片加载失败</p>
-                        <p class="text-xs">请检查网络或稍后重试</p>
-                    </div>
-                `;
-                previewDiv.classList.add('border-red-500', 'bg-red-50'); // 添加错误提示样式
-                // 可选，同时更新一个通用状态消息
-                const apiStatusMessage = document.getElementById('apiStatusMessage');
-                if(apiStatusMessage) apiStatusMessage.textContent = '部分图片生成失败，请检查。';
-                // 如果状态消息是由此错误设置的，则在延迟后清除
-                setTimeout(() => {
-                    if (apiStatusMessage && apiStatusMessage.textContent === '部分图片生成失败，请检查。') {
-                        apiStatusMessage.textContent = '';
-                    }
-                }, 4000);
-            };
-
-            img.src = url;
+            // 使用重试机制加载图片
+            loadImageWithRetry(img, url, 3)
+                .then(() => {
+                    loadingDiv.remove();
+                    img.style.opacity = '1';
+                    // 设置图片预览功能
+                    setupImagePreview(img);
+                })
+                .catch((error) => {
+                    console.error('图片加载失败:', error);
+                    loadingDiv.innerHTML = `
+                        <div class="text-red-500 p-2 text-center">
+                            <p class="font-semibold">图片加载失败</p>
+                            <p class="text-xs">已重试3次，请检查网络或稍后重试</p>
+                        </div>
+                    `;
+                    previewDiv.classList.add('border-red-500', 'bg-red-50');
+                    
+                    const apiStatusMessage = document.getElementById('apiStatusMessage');
+                    if(apiStatusMessage) apiStatusMessage.textContent = '部分图片生成失败，请检查。';
+                    setTimeout(() => {
+                        if (apiStatusMessage && apiStatusMessage.textContent === '部分图片生成失败，请检查。') {
+                            apiStatusMessage.textContent = '';
+                        }
+                    }, 4000);
+                });
 
             // 添加延迟，避免并发请求
             await new Promise(resolve => setTimeout(resolve, 2000));
@@ -2217,4 +2288,131 @@ window.applyNegativePreset = function(presetKey, isAppend) {
     setTimeout(() => {
         negPromptInput.classList.remove('highlight-animation');
     }, 1000);
+}
+
+// ============ 新增功能: 图生图相关函数 ============
+
+// 处理图片上传
+document.addEventListener('DOMContentLoaded', function() {
+    const generationMode = document.getElementById('generationMode');
+    const imageUploadSection = document.getElementById('imageUploadSection');
+    const referenceImageInput = document.getElementById('referenceImage');
+    
+    // 监听生成模式切换
+    if (generationMode) {
+        generationMode.addEventListener('change', function() {
+            if (this.value === 'image-to-image') {
+                imageUploadSection.classList.remove('hidden');
+            } else {
+                imageUploadSection.classList.add('hidden');
+                clearReferenceImage();
+            }
+        });
+    }
+    
+    // 处理图片上传
+    if (referenceImageInput) {
+        referenceImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    referenceImageData = event.target.result;
+                    referenceImageUrl = URL.createObjectURL(file);
+                    
+                    // 显示预览
+                    const previewDiv = document.getElementById('imagePreview');
+                    const previewImg = document.getElementById('previewImg');
+                    previewImg.src = referenceImageUrl;
+                    previewDiv.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+
+// 清除参考图片
+window.clearReferenceImage = function() {
+    referenceImageData = null;
+    if (referenceImageUrl) {
+        URL.revokeObjectURL(referenceImageUrl);
+        referenceImageUrl = null;
+    }
+    
+    const referenceImageInput = document.getElementById('referenceImage');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    if (referenceImageInput) referenceImageInput.value = '';
+    if (imagePreview) imagePreview.classList.add('hidden');
+    if (previewImg) previewImg.src = '';
+}
+
+// ============ 新增功能: 缓存机制 ============
+
+// 生成缓存键
+function generateCacheKey(params) {
+    return JSON.stringify(params);
+}
+
+// 从缓存获取图片
+function getFromCache(params) {
+    const key = generateCacheKey(params);
+    return imageCache.get(key);
+}
+
+// 保存到缓存
+function saveToCache(params, imageUrl) {
+    const key = generateCacheKey(params);
+    // 限制缓存大小
+    if (imageCache.size > 50) {
+        const firstKey = imageCache.keys().next().value;
+        imageCache.delete(firstKey);
+    }
+    imageCache.set(key, imageUrl);
+}
+
+// ============ 新增功能: 错误重试机制 ============
+
+// 带指数退避的重试函数
+async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            return await fn();
+        } catch (error) {
+            if (i === maxRetries - 1) throw error;
+            
+            const delay = baseDelay * Math.pow(2, i);
+            console.log(`请求失败，${delay}ms 后重试... (${i + 1}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+}
+
+// 图片加载重试
+function loadImageWithRetry(imgElement, url, maxRetries = 3) {
+    return new Promise((resolve, reject) => {
+        let retries = 0;
+        
+        function attemptLoad() {
+            imgElement.onload = () => resolve();
+            
+            imgElement.onerror = () => {
+                retries++;
+                if (retries < maxRetries) {
+                    console.log(`图片加载失败，重试 ${retries}/${maxRetries}`);
+                    setTimeout(() => {
+                        imgElement.src = url + `&retry=${retries}`;
+                    }, 1000 * retries);
+                } else {
+                    reject(new Error('图片加载失败'));
+                }
+            };
+            
+            imgElement.src = url;
+        }
+        
+        attemptLoad();
+    });
 }
