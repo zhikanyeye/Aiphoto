@@ -1191,8 +1191,8 @@ async function enhancePrompt() {
     
     // 显示加载状态
     const enhanceBtn = document.getElementById('enhanceBtn');
-    const originalBtnText = enhanceBtn.innerHTML;
-    enhanceBtn.innerHTML = '🔄 正在优化...';
+    const originalBtnText = enhanceBtn.textContent;
+    enhanceBtn.textContent = '🔄 正在优化...';
     enhanceBtn.disabled = true;
     
     const apiStatusMessage = document.getElementById('apiStatusMessage');
@@ -1243,7 +1243,7 @@ async function enhancePrompt() {
             apiStatusMessage.textContent = originalStatusText;
         }, 3000);
     } finally {
-        enhanceBtn.innerHTML = originalBtnText;
+        enhanceBtn.textContent = originalBtnText;
         enhanceBtn.disabled = false;
     }
 }
