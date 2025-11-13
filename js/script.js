@@ -218,6 +218,45 @@ document.addEventListener('DOMContentLoaded', function() {
             promptHint.style.opacity = '0.7';
         }
     });
+
+    // 监听 AI 模型选择，自动调整参数以适配不同模型（例如 turbo 优化速度）
+    const aiModelSelect = document.getElementById('aiModel');
+    const stepsRange = document.getElementById('steps');
+    const cfgRange = document.getElementById('cfgScale');
+    const widthSelect = document.getElementById('aspectRatio');
+    const modelNotice = document.createElement('div');
+    modelNotice.id = 'modelNotice';
+    modelNotice.className = 'text-sm text-yellow-700 mt-2';
+    aiModelSelect && aiModelSelect.parentNode && aiModelSelect.parentNode.appendChild(modelNotice);
+
+    function applyModelDefaults(model) {
+        if (!stepsRange || !cfgRange) return;
+        if (model === 'turbo') {
+            // turbo: 更快但质量略低，降低步数和CFG Scale
+            stepsRange.value = Math.max(20, Math.min(35, parseInt(stepsRange.value)));
+            cfgRange.value = Math.max(3, Math.min(6, parseFloat(cfgRange.value)));
+            // 建议使用较小尺寸以加速
+            if (widthSelect) widthSelect.value = '1024:1024';
+            modelNotice.textContent = '已为 Turbo 自动调整参数：步数↓、CFG↓，以获得更快生成速度。若需更高质量请切换到 Flux。';
+        } else if (model === 'flux') {
+            // flux: 提高默认以获得更好质量
+            stepsRange.value = Math.max(50, parseInt(stepsRange.value));
+            cfgRange.value = Math.max(7, parseFloat(cfgRange.value));
+            modelNotice.textContent = '已为 Flux 自动调整参数以获得更高质量输出。';
+        }
+        // 触发 UI 更新显示
+        const ev = new Event('change');
+        stepsRange && stepsRange.dispatchEvent(ev);
+        cfgRange && cfgRange.dispatchEvent(ev);
+    }
+
+    if (aiModelSelect) {
+        // 初始化时应用默认
+        applyModelDefaults(aiModelSelect.value);
+        aiModelSelect.addEventListener('change', function() {
+            applyModelDefaults(this.value);
+        });
+    }
     
     // 输入内容时隐藏提示
     promptTextarea.addEventListener('input', () => {
