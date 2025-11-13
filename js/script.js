@@ -1359,16 +1359,18 @@ async function generateImage() {
             
             // 检查是否使用图生图模式
             if (generationMode === 'image-to-image') {
-                // 图生图模式 - 使用 kontext 模型
-                // 注意: 由于 Pollinations 需要公开可访问的图片URL,
-                // 我们使用 base64 data URL (某些API支持) 或需要先上传图片到图床
-                // 这里我们尝试使用 base64 (如果API不支持,用户需要提供公开URL)
-                const imageParam = referenceImageData || referenceImageUrl;
-                url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?model=kontext&image=${encodeURIComponent(imageParam)}&seed=${currentSeed}&width=${width}&height=${height}&nologo=true`;
+                // 图生图模式 - 先上传图片到sm.ms图床，获取公网URL
+                const imageUrl = await uploadImageToSMMS(referenceImageFile);
+                if (!imageUrl) {
+                    alert('图片上传失败，无法进行图生图转换');
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = '🎨 生成图片';
+                    return;
+                }
+                url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?model=kontext&image=${encodeURIComponent(imageUrl)}&seed=${currentSeed}&width=${width}&height=${height}&nologo=true`;
             } else {
                 // 文生图模式 - 使用选择的模型
                 url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?model=${aiModel}&seed=${currentSeed}&width=${width}&height=${height}&steps=${steps}&cfg_scale=${cfgScale}&nologo=true`;
-                
                 // 添加采样器和强度参数
                 url += `&sampler=${sampler}&noise_strength=${noise}&style_strength=${styleStrength}`;
             }
@@ -2315,11 +2317,11 @@ document.addEventListener('DOMContentLoaded', function() {
         referenceImageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file && file.type.startsWith('image/')) {
+                referenceImageFile = file; // 新增：存储原始文件对象
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     referenceImageData = event.target.result;
                     referenceImageUrl = URL.createObjectURL(file);
-                    
                     // 显示预览
                     const previewDiv = document.getElementById('imagePreview');
                     const previewImg = document.getElementById('previewImg');
@@ -2330,6 +2332,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+// ============ 新增: 上传图片到sm.ms图床，返回公网URL ============
+let referenceImageFile = null;
+async function uploadImageToSMMS(file) {
+    if (!file) return null;
+    const formData = new FormData();
+    formData.append('smfile', file);
+    try {
+        const resp = await fetch('https://sm.ms/api/v2/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await resp.json();
+        if (data.success && data.data && data.data.url) {
+            return data.data.url;
+        } else {
+            return null;
+        }
+    } catch (e) {
+        return null;
+    }
+}
 });
 
 // 清除参考图片
