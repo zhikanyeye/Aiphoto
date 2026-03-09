@@ -80,6 +80,15 @@ Aiphoto 是一个基于 AI 的智能绘画生成工具，让您只需输入中�
 4. 点击生成，等待 AI 魔法 ✨
 
 <details>
+<summary>v3.1 更新内容</summary>
+
+- 🖼️ **图床迁移**：从 SM.MS 迁移到 ImgBB API，解决匿名上传限制，图生图更稳定
+- 🔑 **ImgBB API 配置**：支持用户自行配置 ImgBB API 密钥，API设置界面新增对应输入框
+- 🧹 API 设置面板 UI 优化，统一管理翻译与图床密钥
+
+</details>
+
+<details>
 <summary>v3.0 更新内容</summary>
 
 - 🎨 统一浅色主题设计，提升视觉一致性
@@ -164,6 +173,18 @@ python -m http.server 8000
 4. 密钥将安全存储在浏览器本地，不会上传服务器
 
 **安全说明**：所有 API 密钥均采用本地加密存储，保障您的数据安全。
+
+</details>
+
+<details>
+<summary>ImgBB API 配置步骤（图生图必需）</summary>
+
+图生图（图片风格转换）功能需要将参考图片上传至公网，因此需要配置 ImgBB API 密钥。
+
+1. 访问 [https://api.imgbb.com/](https://api.imgbb.com/) 注册并获取免费 API 密钥
+2. 点击应用左上角 "⚙️ API设置"
+3. 在 "ImgBB API密钥" 输入框中填入密钥并保存
+4. 密钥将安全存储在浏览器本地，不会上传服务器
 
 </details>
 

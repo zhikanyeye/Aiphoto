@@ -1398,13 +1398,13 @@ async function generateImage() {
             
             // 检查是否使用图生图模式
             if (generationMode === 'image-to-image') {
-                // 图生图模式 - 尝试优先使用本地文件上传到 sm.ms 获取公网 URL
+                // 图生图模式 - 尝试优先使用本地文件上传到 ImgBB 获取公网 URL
                 // 如果没有本地文件或上传失败，则回退为用户粘贴的公网 URL
                 let imageUrl = null;
                 if (referenceImageFile) {
-                    console.log('尝试将上传的图片发送到 sm.ms');
-                    imageUrl = await uploadImageToSMMS(referenceImageFile);
-                    if (!imageUrl) console.warn('sm.ms 上传返回空，尝试使用用户提供的公网 URL 回退');
+                    console.log('尝试将上传的图片发送到 ImgBB');
+                    imageUrl = await uploadImageToImgBB(referenceImageFile);
+                    if (!imageUrl) console.warn('ImgBB 上传返回空，尝试使用用户提供的公网 URL 回退');
                 }
 
                 // 如果上传失败或没有文件，尝试使用用户手动输入的公网图片 URL
@@ -1722,8 +1722,14 @@ async function translateWithNiutrans(text) {
 // 添加保存API密钥的函数
 function saveApiKey() {
     const apiKey = document.getElementById('apiKeyInput').value.trim();
+    const imgbbKey = document.getElementById('imgbbKeyInput').value.trim();
+    if (imgbbKey) {
+        localStorage.setItem('imgbbApiKey', imgbbKey);
+    }
     if (apiKey) {
         localStorage.setItem('niutransApiKey', apiKey);
+    }
+    if (apiKey || imgbbKey) {
         document.getElementById('apiKeyStatus').textContent = '✅ API密钥已保存';
         
         // 2秒后隐藏状态消息并关闭设置面板
@@ -1887,7 +1893,9 @@ function showApiConfiguredNotification() {
 function clearApiKey() {
     localStorage.removeItem('niutransApiKey');
     localStorage.removeItem('apiSetupSkipped');
+    localStorage.removeItem('imgbbApiKey');
     document.getElementById('apiKeyInput').value = '';
+    document.getElementById('imgbbKeyInput').value = '';
     document.getElementById('apiKeyStatus').textContent = '✅ API密钥已清除';
     
     // 2秒后隐藏状态消息
@@ -1905,6 +1913,8 @@ function toggleApiSettings() {
     if (!settingsPanel.classList.contains('hidden')) {
         const savedApiKey = localStorage.getItem('niutransApiKey') || '';
         document.getElementById('apiKeyInput').value = savedApiKey;
+        const savedImgbbKey = localStorage.getItem('imgbbApiKey') || '';
+        document.getElementById('imgbbKeyInput').value = savedImgbbKey;
         
         // 确保设置面板显示在最上层
         settingsPanel.style.position = 'fixed';
@@ -1928,14 +1938,21 @@ function toggleApiSettings() {
 // 检查API密钥状态并在界面显示
 function checkApiKeyStatus() {
     const apiKey = localStorage.getItem('niutransApiKey');
+    const imgbbKey = localStorage.getItem('imgbbApiKey');
     const apiSetupSkipped = localStorage.getItem('apiSetupSkipped') === 'true';
     const apiButtonHidden = localStorage.getItem('apiButtonHidden') === 'true';
     
     // 更新API状态消息
     const apiStatusMessage = document.getElementById('apiStatusMessage');
     if (apiStatusMessage) {
-    if (apiKey) {
+    if (apiKey && imgbbKey) {
+            apiStatusMessage.textContent = '✅ 翻译API 和 ImgBB API 均已配置';
+            apiStatusMessage.className = 'text-sm text-green-600 mt-1 h-5';
+        } else if (apiKey) {
             apiStatusMessage.textContent = '✅ 翻译API已配置';
+            apiStatusMessage.className = 'text-sm text-green-600 mt-1 h-5';
+        } else if (imgbbKey) {
+            apiStatusMessage.textContent = '✅ ImgBB API已配置';
             apiStatusMessage.className = 'text-sm text-green-600 mt-1 h-5';
         } else if (apiSetupSkipped) {
             apiStatusMessage.textContent = '⚠️ 使用原始提示词（未配置API）';
@@ -1946,7 +1963,7 @@ function checkApiKeyStatus() {
     }
     
     // 如果既没有API密钥也没有跳过设置，且按钮未被隐藏，显示API设置面板
-    if (!apiKey && !apiSetupSkipped && !apiButtonHidden) {
+    if (!apiKey && !imgbbKey && !apiSetupSkipped && !apiButtonHidden) {
         // 延迟显示设置面板，让页面先加载完成
     setTimeout(() => {
             toggleApiSettings();
@@ -2389,14 +2406,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-// ============ 新增: 上传图片到sm.ms图床，返回公网URL ============
+// ============ 新增: 上传图片到ImgBB图床，返回公网URL ============
 let referenceImageFile = null;
-async function uploadImageToSMMS(file) {
+async function uploadImageToImgBB(file) {
     if (!file) return null;
+    const imgbbKey = localStorage.getItem('imgbbApiKey');
+    if (!imgbbKey) {
+        alert('请先在API设置中配置ImgBB API密钥，用于图生图参考图上传。\n获取密钥：https://api.imgbb.com/');
+        return null;
+    }
     const formData = new FormData();
-    formData.append('smfile', file);
+    formData.append('image', file);
     try {
-        const resp = await fetch('https://sm.ms/api/v2/upload', {
+        const resp = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`, {
             method: 'POST',
             body: formData
         });
